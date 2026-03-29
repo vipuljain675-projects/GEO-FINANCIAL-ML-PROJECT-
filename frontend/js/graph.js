@@ -153,6 +153,8 @@ function showNodeDetail(d) {
     <div class="detail-section">
       <div class="detail-section-title">Metrics</div>
       <div class="metric-row"><span class="metric-label">Sector</span><span class="metric-value" style="color:${getSectorColor(d.sector)};text-transform:capitalize">${d.sector}</span></div>
+      <div class="metric-row"><span class="metric-label">Leader</span><span class="metric-value">${d.leader || 'N/A'}</span></div>
+      <div class="metric-row"><span class="metric-label">Valuation</span><span class="metric-value">${d.valuation_t ? '₹'+d.valuation_t+'T' : '$'+d.revenue_bn+'B'}</span></div>
       <div class="metric-row"><span class="metric-label">Criticality</span><span class="metric-value">${d.criticality}/10</span></div>
       <div class="metric-row"><span class="metric-label">Vulnerability</span><span class="metric-value">${d.vulnerability_score.toFixed(1)}</span></div>
       <div class="metric-row"><span class="metric-label">Betweenness</span><span class="metric-value">${d.betweenness.toFixed(3)}</span></div>

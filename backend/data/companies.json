@@ -1,604 +1,1828 @@
 {
   "companies": [
     {
-      "ticker": "HAL.NS", "name": "Hindustan Aeronautics", "short": "HAL",
-      "sector": "defense", "role": "Air Superiority / Aircraft Manufacturing",
-      "criticality": 10, "employees": 30000, "revenue_bn": 4.2,
+      "ticker": "HAL.NS",
+      "name": "Hindustan Aeronautics",
+      "short": "HAL",
+      "sector": "defense",
+      "role": "Air Superiority / Aircraft Manufacturing",
+      "criticality": 10,
+      "employees": 28000,
+      "revenue_bn": 4.2,
       "description": "India's primary aircraft manufacturer. Produces Tejas fighter, Dhruv helicopter, Su-30 MKI overhaul. Loss would ground the IAF within months.",
       "threats": [
-        {"actor": "China/Pakistan ISI", "method": "Supply-chain sabotage of critical components", "impact": "Grounding of IAF fleet", "loss_estimate_bn": 15},
-        {"actor": "Cyber Groups (APT41)", "method": "IP theft of Tejas blueprints", "impact": "Technology compromise", "loss_estimate_bn": 5},
-        {"actor": "Internal", "method": "Disgruntled employee espionage", "impact": "Classified design leaks", "loss_estimate_bn": 2}
+        {
+          "actor": "China/Pakistan ISI",
+          "method": "Supply-chain sabotage of critical components",
+          "impact": "Grounding of IAF fleet",
+          "loss_estimate_bn": 15
+        },
+        {
+          "actor": "Cyber Groups (APT41)",
+          "method": "IP theft of Tejas blueprints",
+          "impact": "Technology compromise",
+          "loss_estimate_bn": 5
+        },
+        {
+          "actor": "Internal",
+          "method": "Disgruntled employee espionage",
+          "impact": "Classified design leaks",
+          "loss_estimate_bn": 2
+        }
       ],
-      "protections": ["Air-gap critical CAD systems", "Multi-vendor component sourcing", "Counter-intelligence cell", "Zero-trust network access"],
-      "dependencies": ["BEL.NS", "MIDHANI.NS", "BDL.NS", "LT.NS", "DATAPAT.NS"]
+      "protections": [
+        "Air-gap critical CAD systems",
+        "Multi-vendor component sourcing",
+        "Counter-intelligence cell",
+        "Zero-trust network access"
+      ],
+      "dependencies": [
+        "BEL.NS",
+        "MIDHANI.NS",
+        "BDL.NS",
+        "LT.NS",
+        "DATAPAT.NS"
+      ],
+      "leader": "C.B. Ananthakrishnan",
+      "valuation_t": 3.8
     },
     {
-      "ticker": "BEL.NS", "name": "Bharat Electronics", "short": "BEL",
-      "sector": "defense", "role": "Radar, EW Systems, Communications",
-      "criticality": 9, "employees": 12000, "revenue_bn": 2.1,
+      "ticker": "BEL.NS",
+      "name": "Bharat Electronics",
+      "short": "BEL",
+      "sector": "defense",
+      "role": "Radar, EW Systems, Communications",
+      "criticality": 9,
+      "employees": 9000,
+      "revenue_bn": 2.1,
       "description": "Manufactures radar systems, electronic warfare suites, and battlefield communication for all three forces.",
       "threats": [
-        {"actor": "China (PLA-SSF)", "method": "Chip-level hardware backdoors in imported ICs", "impact": "Compromised radar data", "loss_estimate_bn": 8},
-        {"actor": "Cyber Groups", "method": "Ransomware on production systems", "impact": "Production halt", "loss_estimate_bn": 1.5}
+        {
+          "actor": "China (PLA-SSF)",
+          "method": "Chip-level hardware backdoors in imported ICs",
+          "impact": "Compromised radar data",
+          "loss_estimate_bn": 8
+        },
+        {
+          "actor": "Cyber Groups",
+          "method": "Ransomware on production systems",
+          "impact": "Production halt",
+          "loss_estimate_bn": 1.5
+        }
       ],
-      "protections": ["Domestic IC fabrication push", "Secure supply-chain audits", "Air-gapped production networks", "Red-team exercises"],
-      "dependencies": ["HAL.NS", "SBIN.NS", "HCLTECH.NS", "DATAPAT.NS"]
+      "protections": [
+        "Domestic IC fabrication push",
+        "Secure supply-chain audits",
+        "Air-gapped production networks",
+        "Red-team exercises"
+      ],
+      "dependencies": [
+        "HAL.NS",
+        "SBIN.NS",
+        "HCLTECH.NS",
+        "DATAPAT.NS"
+      ],
+      "leader": "Bhanu Prakash Srivastava",
+      "valuation_t": 2.1
     },
     {
-      "ticker": "BDL.NS", "name": "Bharat Dynamics", "short": "BDL",
-      "sector": "defense", "role": "Missiles & Torpedo Systems",
-      "criticality": 9, "employees": 4500, "revenue_bn": 0.8,
+      "ticker": "BDL.NS",
+      "name": "Bharat Dynamics",
+      "short": "BDL",
+      "sector": "defense",
+      "role": "Missiles & Torpedo Systems",
+      "criticality": 9,
+      "employees": 3200,
+      "revenue_bn": 0.8,
       "description": "India's sole missile production agency. Produces Akash, NAG, MRSAM. Loss disarms ground-based air defenses.",
       "threats": [
-        {"actor": "Pakistan/China", "method": "Kinetic strike on Hyderabad facility", "impact": "Loss of missile stockpile", "loss_estimate_bn": 10},
-        {"actor": "Cyber", "method": "Guidance software tampering", "impact": "Missile system failure in combat", "loss_estimate_bn": 20}
+        {
+          "actor": "Pakistan/China",
+          "method": "Kinetic strike on Hyderabad facility",
+          "impact": "Loss of missile stockpile",
+          "loss_estimate_bn": 10
+        },
+        {
+          "actor": "Cyber",
+          "method": "Guidance software tampering",
+          "impact": "Missile system failure in combat",
+          "loss_estimate_bn": 20
+        }
       ],
-      "protections": ["Geo-dispersed manufacturing units", "Hardware security modules for guidance code", "Physical perimeter hardening"],
-      "dependencies": ["HAL.NS", "BEL.NS", "SOLARINDS.NS", "MIDHANI.NS"]
+      "protections": [
+        "Geo-dispersed manufacturing units",
+        "Hardware security modules for guidance code",
+        "Physical perimeter hardening"
+      ],
+      "dependencies": [
+        "HAL.NS",
+        "BEL.NS",
+        "SOLARINDS.NS",
+        "MIDHANI.NS"
+      ],
+      "leader": "Commodore A. Madhavarao",
+      "valuation_t": 0.9
     },
     {
-      "ticker": "MAZDOCK.NS", "name": "Mazagon Dock", "short": "MDL",
-      "sector": "defense", "role": "Submarines & Destroyers",
-      "criticality": 9, "employees": 6500, "revenue_bn": 1.2,
+      "ticker": "MAZDOCK.NS",
+      "name": "Mazagon Dock",
+      "short": "MDL",
+      "sector": "defense",
+      "role": "Submarines & Destroyers",
+      "criticality": 9,
+      "employees": 3500,
+      "revenue_bn": 1.2,
       "description": "Builds Scorpene submarines and P-15B stealth destroyers. Controls India's undersea warfare capability.",
       "threats": [
-        {"actor": "China PLAN", "method": "Underwater sabotage of Mumbai dry-docks", "impact": "10yr submarine program delay", "loss_estimate_bn": 25},
-        {"actor": "Cyber", "method": "Blueprint theft of submarine sonar", "impact": "Undersea advantage lost", "loss_estimate_bn": 12}
+        {
+          "actor": "China PLAN",
+          "method": "Underwater sabotage of Mumbai dry-docks",
+          "impact": "10yr submarine program delay",
+          "loss_estimate_bn": 25
+        },
+        {
+          "actor": "Cyber",
+          "method": "Blueprint theft of submarine sonar",
+          "impact": "Undersea advantage lost",
+          "loss_estimate_bn": 12
+        }
       ],
-      "protections": ["Naval security perimeter", "Classified design air-gap", "Underwater CCTV + sonar fencing", "Counter-HUMINT ops"],
-      "dependencies": ["LT.NS", "MIDHANI.NS", "COCHINSHIP.NS", "GRSE.NS", "BEL.NS"]
+      "protections": [
+        "Naval security perimeter",
+        "Classified design air-gap",
+        "Underwater CCTV + sonar fencing",
+        "Counter-HUMINT ops"
+      ],
+      "dependencies": [
+        "LT.NS",
+        "MIDHANI.NS",
+        "COCHINSHIP.NS",
+        "GRSE.NS",
+        "BEL.NS"
+      ],
+      "leader": "Sanjeev Singhal",
+      "valuation_t": 0.8
     },
     {
-      "ticker": "GRSE.NS", "name": "Garden Reach Shipbuilders", "short": "GRSE",
-      "sector": "defense", "role": "Warships & Patrol Vessels",
-      "criticality": 7, "employees": 3200, "revenue_bn": 0.5,
+      "ticker": "GRSE.NS",
+      "name": "Garden Reach Shipbuilders",
+      "short": "GRSE",
+      "sector": "defense",
+      "role": "Warships & Patrol Vessels",
+      "criticality": 7,
+      "employees": 3200,
+      "revenue_bn": 0.5,
       "description": "Builds corvettes and patrol vessels for the Indian Navy. Key to littoral warfare capability.",
       "threats": [
-        {"actor": "State-sponsored group", "method": "Labor strike via foreign-funded unions", "impact": "Hull construction delay", "loss_estimate_bn": 2},
-        {"actor": "China", "method": "Supply-chain compromise of steel grades", "impact": "Hull structural weakness", "loss_estimate_bn": 5}
+        {
+          "actor": "State-sponsored group",
+          "method": "Labor strike via foreign-funded unions",
+          "impact": "Hull construction delay",
+          "loss_estimate_bn": 2
+        },
+        {
+          "actor": "China",
+          "method": "Supply-chain compromise of steel grades",
+          "impact": "Hull structural weakness",
+          "loss_estimate_bn": 5
+        }
       ],
-      "protections": ["Domestic steel sourcing mandate", "Union monitoring program", "Waterway defense perimeter"],
-      "dependencies": ["TATASTEEL.NS", "JSWSTEEL.NS", "MAZDOCK.NS", "BEL.NS"]
+      "protections": [
+        "Domestic steel sourcing mandate",
+        "Union monitoring program",
+        "Waterway defense perimeter"
+      ],
+      "dependencies": [
+        "TATASTEEL.NS",
+        "JSWSTEEL.NS",
+        "MAZDOCK.NS",
+        "BEL.NS"
+      ]
     },
     {
-      "ticker": "COCHINSHIP.NS", "name": "Cochin Shipyard", "short": "CSL",
-      "sector": "defense", "role": "Aircraft Carriers",
-      "criticality": 9, "employees": 2800, "revenue_bn": 0.6,
+      "ticker": "COCHINSHIP.NS",
+      "name": "Cochin Shipyard",
+      "short": "CSL",
+      "sector": "defense",
+      "role": "Aircraft Carriers",
+      "criticality": 9,
+      "employees": 2800,
+      "revenue_bn": 0.6,
       "description": "Built INS Vikrant, India's first indigenous carrier. Loss halts carrier program for a generation.",
       "threats": [
-        {"actor": "China", "method": "Key engineer talent poaching", "impact": "Carrier design program stall", "loss_estimate_bn": 15},
-        {"actor": "Sabotage", "method": "Explosives in dry-dock", "impact": "Carrier hull damage", "loss_estimate_bn": 30}
+        {
+          "actor": "China",
+          "method": "Key engineer talent poaching",
+          "impact": "Carrier design program stall",
+          "loss_estimate_bn": 15
+        },
+        {
+          "actor": "Sabotage",
+          "method": "Explosives in dry-dock",
+          "impact": "Carrier hull damage",
+          "loss_estimate_bn": 30
+        }
       ],
-      "protections": ["Talent retention programs", "Physical security reinforcement", "Naval Intelligence embedding"],
-      "dependencies": ["MAZDOCK.NS", "TATASTEEL.NS", "LT.NS", "HINDALCO.NS"]
+      "protections": [
+        "Talent retention programs",
+        "Physical security reinforcement",
+        "Naval Intelligence embedding"
+      ],
+      "dependencies": [
+        "MAZDOCK.NS",
+        "TATASTEEL.NS",
+        "LT.NS",
+        "HINDALCO.NS"
+      ]
     },
     {
-      "ticker": "LT.NS", "name": "Larsen & Toubro", "short": "L&T",
-      "sector": "defense", "role": "Nuclear Submarines & Heavy Engineering",
-      "criticality": 10, "employees": 50000, "revenue_bn": 22.0,
+      "ticker": "LT.NS",
+      "name": "Larsen & Toubro",
+      "short": "L&T",
+      "sector": "defense",
+      "role": "Nuclear Submarines & Heavy Engineering",
+      "criticality": 10,
+      "employees": 350000,
+      "revenue_bn": 22.0,
       "description": "Builds nuclear-sub pressure hulls, artillery, and critical civil/military infrastructure. Most diversified defense firm.",
       "threats": [
-        {"actor": "China", "method": "Hostile acquisition of overseas suppliers", "impact": "Supply chain severance", "loss_estimate_bn": 8},
-        {"actor": "Cyber", "method": "SCADA attack on Smart City projects", "impact": "Urban infrastructure failure", "loss_estimate_bn": 5}
+        {
+          "actor": "China",
+          "method": "Hostile acquisition of overseas suppliers",
+          "impact": "Supply chain severance",
+          "loss_estimate_bn": 8
+        },
+        {
+          "actor": "Cyber",
+          "method": "SCADA attack on Smart City projects",
+          "impact": "Urban infrastructure failure",
+          "loss_estimate_bn": 5
+        }
       ],
-      "protections": ["Diversified supply chains across 40+ countries", "Private threat intelligence team", "SCADA security hardening"],
-      "dependencies": ["TATASTEEL.NS", "NTPC.NS", "POWERGRID.NS", "MIDHANI.NS", "SBIN.NS"]
+      "protections": [
+        "Diversified supply chains across 40+ countries",
+        "Private threat intelligence team",
+        "SCADA security hardening"
+      ],
+      "dependencies": [
+        "TATASTEEL.NS",
+        "NTPC.NS",
+        "POWERGRID.NS",
+        "MIDHANI.NS",
+        "SBIN.NS"
+      ],
+      "leader": "S.N. Subrahmanyan",
+      "valuation_t": 5.2
     },
     {
-      "ticker": "BHARATFORG.NS", "name": "Bharat Forge", "short": "BF",
-      "sector": "defense", "role": "Heavy Artillery & Forgings",
-      "criticality": 8, "employees": 14000, "revenue_bn": 1.8,
+      "ticker": "BHARATFORG.NS",
+      "name": "Bharat Forge",
+      "short": "BF",
+      "sector": "defense",
+      "role": "Heavy Artillery & Forgings",
+      "criticality": 8,
+      "employees": 14000,
+      "revenue_bn": 1.8,
       "description": "Manufactures 155mm howitzers and critical forgings for aerospace, automotive, and defense.",
       "threats": [
-        {"actor": "Pakistan", "method": "Targeting Pune forging plants", "impact": "Artillery production halted", "loss_estimate_bn": 4},
-        {"actor": "Cyber", "method": "CNC machine firmware attack", "impact": "Defective artillery production", "loss_estimate_bn": 3}
+        {
+          "actor": "Pakistan",
+          "method": "Targeting Pune forging plants",
+          "impact": "Artillery production halted",
+          "loss_estimate_bn": 4
+        },
+        {
+          "actor": "Cyber",
+          "method": "CNC machine firmware attack",
+          "impact": "Defective artillery production",
+          "loss_estimate_bn": 3
+        }
       ],
-      "protections": ["OT/IT network segregation", "Redundant production sites", "Domestic raw-material stockpile"],
-      "dependencies": ["TATASTEEL.NS", "COALINDIA.NS", "ASHOKLEY.NS"]
+      "protections": [
+        "OT/IT network segregation",
+        "Redundant production sites",
+        "Domestic raw-material stockpile"
+      ],
+      "dependencies": [
+        "TATASTEEL.NS",
+        "COALINDIA.NS",
+        "ASHOKLEY.NS"
+      ]
     },
     {
-      "ticker": "MIDHANI.NS", "name": "Mishra Dhatu Nigam", "short": "MIDHANI",
-      "sector": "defense", "role": "Special Alloys for Aerospace & Defense",
-      "criticality": 9, "employees": 1800, "revenue_bn": 0.2,
+      "ticker": "MIDHANI.NS",
+      "name": "Mishra Dhatu Nigam",
+      "short": "MIDHANI",
+      "sector": "defense",
+      "role": "Special Alloys for Aerospace & Defense",
+      "criticality": 9,
+      "employees": 1800,
+      "revenue_bn": 0.2,
       "description": "Only Indian producer of maraging steel, superalloys, titanium alloys used in missiles, submarines, and aircraft.",
       "threats": [
-        {"actor": "China", "method": "Rare-earth supply cutoff affecting alloy feedstock", "impact": "Missile/aircraft production halt", "loss_estimate_bn": 20},
-        {"actor": "Industrial espionage", "method": "Alloy formula theft", "impact": "Competitor advantage", "loss_estimate_bn": 5}
+        {
+          "actor": "China",
+          "method": "Rare-earth supply cutoff affecting alloy feedstock",
+          "impact": "Missile/aircraft production halt",
+          "loss_estimate_bn": 20
+        },
+        {
+          "actor": "Industrial espionage",
+          "method": "Alloy formula theft",
+          "impact": "Competitor advantage",
+          "loss_estimate_bn": 5
+        }
       ],
-      "protections": ["Strategic raw-material reserves (3yr)", "Alternate sourcing from Australia/Canada", "Classified formula vaults"],
-      "dependencies": ["HAL.NS", "BDL.NS", "MAZDOCK.NS", "LT.NS"]
+      "protections": [
+        "Strategic raw-material reserves (3yr)",
+        "Alternate sourcing from Australia/Canada",
+        "Classified formula vaults"
+      ],
+      "dependencies": [
+        "HAL.NS",
+        "BDL.NS",
+        "MAZDOCK.NS",
+        "LT.NS"
+      ]
     },
     {
-      "ticker": "ASTRAL.NS", "name": "Astral Ltd", "short": "ASTRAL",
-      "sector": "defense", "role": "Defense Infrastructure Piping",
-      "criticality": 5, "employees": 7000, "revenue_bn": 0.9,
+      "ticker": "ASTRAL.NS",
+      "name": "Astral Ltd",
+      "short": "ASTRAL",
+      "sector": "defense",
+      "role": "Defense Infrastructure Piping",
+      "criticality": 5,
+      "employees": 7000,
+      "revenue_bn": 0.9,
       "description": "Supplies industrial piping for defense facilities, naval bases, and critical infrastructure.",
       "threats": [
-        {"actor": "Supply-chain", "method": "Substandard piping in defense bases", "impact": "Facility water/fuel leaks", "loss_estimate_bn": 0.5}
+        {
+          "actor": "Supply-chain",
+          "method": "Substandard piping in defense bases",
+          "impact": "Facility water/fuel leaks",
+          "loss_estimate_bn": 0.5
+        }
       ],
-      "protections": ["Quality audits for defense contracts", "Domestic sourcing mandates"],
-      "dependencies": ["LT.NS", "NTPC.NS"]
+      "protections": [
+        "Quality audits for defense contracts",
+        "Domestic sourcing mandates"
+      ],
+      "dependencies": [
+        "LT.NS",
+        "NTPC.NS"
+      ]
     },
     {
-      "ticker": "ASHOKLEY.NS", "name": "Ashok Leyland", "short": "AL",
-      "sector": "defense", "role": "Military Trucks & Logistics",
-      "criticality": 7, "employees": 13000, "revenue_bn": 4.5,
+      "ticker": "ASHOKLEY.NS",
+      "name": "Ashok Leyland",
+      "short": "AL",
+      "sector": "defense",
+      "role": "Military Trucks & Logistics",
+      "criticality": 7,
+      "employees": 13000,
+      "revenue_bn": 4.5,
       "description": "Primary supplier of military trucks (LSHS, STALLION) to the Indian Army. Controls battlefield logistics mobility.",
       "threats": [
-        {"actor": "China", "method": "EMP targeting of vehicle electronics", "impact": "Army logistics paralysis", "loss_estimate_bn": 6},
-        {"actor": "Cyber", "method": "ECU firmware attack on military fleets", "impact": "Truck non-operationality", "loss_estimate_bn": 2}
+        {
+          "actor": "China",
+          "method": "EMP targeting of vehicle electronics",
+          "impact": "Army logistics paralysis",
+          "loss_estimate_bn": 6
+        },
+        {
+          "actor": "Cyber",
+          "method": "ECU firmware attack on military fleets",
+          "impact": "Truck non-operationality",
+          "loss_estimate_bn": 2
+        }
       ],
-      "protections": ["EMP-hardened military variants", "Spare-ECU stockpiles", "Distributed service depots"],
-      "dependencies": ["BHARATFORG.NS", "TATAMOTORS.NS", "IOC.NS"]
+      "protections": [
+        "EMP-hardened military variants",
+        "Spare-ECU stockpiles",
+        "Distributed service depots"
+      ],
+      "dependencies": [
+        "BHARATFORG.NS",
+        "TATAMOTORS.NS",
+        "IOC.NS"
+      ]
     },
     {
-      "ticker": "M&M.NS", "name": "Mahindra & Mahindra", "short": "M&M",
-      "sector": "defense", "role": "Armored Vehicles & Mine-Protected Vehicles",
-      "criticality": 7, "employees": 26000, "revenue_bn": 9.0,
+      "ticker": "M&M.NS",
+      "name": "Mahindra & Mahindra",
+      "short": "M&M",
+      "sector": "defense",
+      "role": "Armored Vehicles & Mine-Protected Vehicles",
+      "criticality": 7,
+      "employees": 26000,
+      "revenue_bn": 9.0,
       "description": "Manufactures Armored Scorpio, Mine Protected Vehicles (MPV), and light armored vehicles for the Army and Para-SF.",
       "threats": [
-        {"actor": "Pakistan", "method": "Attack on Nashik manufacturing plant", "impact": "Armored vehicle production halt", "loss_estimate_bn": 3},
-        {"actor": "Cyber", "method": "Autonomous system hijacking", "impact": "Compromised vehicle command", "loss_estimate_bn": 4}
+        {
+          "actor": "Pakistan",
+          "method": "Attack on Nashik manufacturing plant",
+          "impact": "Armored vehicle production halt",
+          "loss_estimate_bn": 3
+        },
+        {
+          "actor": "Cyber",
+          "method": "Autonomous system hijacking",
+          "impact": "Compromised vehicle command",
+          "loss_estimate_bn": 4
+        }
       ],
-      "protections": ["Ruggedized ECUs", "Secure comms for autonomous vehicles", "Factory-level perimeter hardening"],
-      "dependencies": ["TATASTEEL.NS", "BHARATFORG.NS", "IOC.NS"]
+      "protections": [
+        "Ruggedized ECUs",
+        "Secure comms for autonomous vehicles",
+        "Factory-level perimeter hardening"
+      ],
+      "dependencies": [
+        "TATASTEEL.NS",
+        "BHARATFORG.NS",
+        "IOC.NS"
+      ]
     },
     {
-      "ticker": "SOLARINDS.NS", "name": "Solar Industries", "short": "SOLAR",
-      "sector": "defense", "role": "Industrial Explosives & Warheads",
-      "criticality": 8, "employees": 9000, "revenue_bn": 0.8,
+      "ticker": "SOLARINDS.NS",
+      "name": "Solar Industries",
+      "short": "SOLAR",
+      "sector": "defense",
+      "role": "Industrial Explosives & Warheads",
+      "criticality": 8,
+      "employees": 9000,
+      "revenue_bn": 0.8,
       "description": "India's largest explosives company. Supplies detonators, warheads, and bulk explosives. Loss degrades Army and mining operations.",
       "threats": [
-        {"actor": "Terrorist groups", "method": "Facility bombing", "impact": "Explosives production loss + casualties", "loss_estimate_bn": 5},
-        {"actor": "Pakistan ISI", "method": "Insider to divert explosives", "impact": "Explosives in enemy hands", "loss_estimate_bn": 10}
+        {
+          "actor": "Terrorist groups",
+          "method": "Facility bombing",
+          "impact": "Explosives production loss + casualties",
+          "loss_estimate_bn": 5
+        },
+        {
+          "actor": "Pakistan ISI",
+          "method": "Insider to divert explosives",
+          "impact": "Explosives in enemy hands",
+          "loss_estimate_bn": 10
+        }
       ],
-      "protections": ["Strict access control with biometrics", "NSG quick reaction team proximity", "Inventory blockchain tracking"],
-      "dependencies": ["COALINDIA.NS", "ONGC.NS", "BDL.NS"]
+      "protections": [
+        "Strict access control with biometrics",
+        "NSG quick reaction team proximity",
+        "Inventory blockchain tracking"
+      ],
+      "dependencies": [
+        "COALINDIA.NS",
+        "ONGC.NS",
+        "BDL.NS"
+      ]
     },
     {
-      "ticker": "DATAPAT.NS", "name": "Data Patterns", "short": "DATAPAT",
-      "sector": "defense", "role": "Defense Electronics & Avionics",
-      "criticality": 8, "employees": 1200, "revenue_bn": 0.15,
+      "ticker": "DATAPAT.NS",
+      "name": "Data Patterns",
+      "short": "DATAPAT",
+      "sector": "defense",
+      "role": "Defense Electronics & Avionics",
+      "criticality": 8,
+      "employees": 1200,
+      "revenue_bn": 0.15,
       "description": "Makes embedded systems, radar signal processors, and avionics for HAL and BEL. Small but single-source for critical subsystems.",
       "threats": [
-        {"actor": "China", "method": "Counterfeit IC insertion", "impact": "Avionics failure mid-mission", "loss_estimate_bn": 8},
-        {"actor": "Cyber", "method": "Firmware backdoor in embedded systems", "impact": "Remote aircraft compromise", "loss_estimate_bn": 15}
+        {
+          "actor": "China",
+          "method": "Counterfeit IC insertion",
+          "impact": "Avionics failure mid-mission",
+          "loss_estimate_bn": 8
+        },
+        {
+          "actor": "Cyber",
+          "method": "Firmware backdoor in embedded systems",
+          "impact": "Remote aircraft compromise",
+          "loss_estimate_bn": 15
+        }
       ],
-      "protections": ["IC authentication chips", "Isolated firmware signing infrastructure", "Regular hardware audits"],
-      "dependencies": ["HAL.NS", "BEL.NS", "HCLTECH.NS"]
+      "protections": [
+        "IC authentication chips",
+        "Isolated firmware signing infrastructure",
+        "Regular hardware audits"
+      ],
+      "dependencies": [
+        "HAL.NS",
+        "BEL.NS",
+        "HCLTECH.NS"
+      ]
     },
     {
-      "ticker": "RELIANCE.NS", "name": "Reliance Industries", "short": "RIL",
-      "sector": "energy", "role": "Refining & Petrochemicals",
-      "criticality": 10, "employees": 236000, "revenue_bn": 105.0,
+      "ticker": "RELIANCE.NS",
+      "name": "Reliance Industries",
+      "short": "RIL",
+      "sector": "energy",
+      "role": "Refining & Petrochemicals",
+      "criticality": 10,
+      "employees": 400000,
+      "revenue_bn": 105.0,
       "description": "World's largest refinery at Jamnagar. Fuels 40% of India's aviation and military fuel. Loss cascades across the entire economy.",
       "threats": [
-        {"actor": "Pakistan/China", "method": "Undersea cable cut + Jamnagar precision strike", "impact": "National fuel crisis in 72hrs", "loss_estimate_bn": 50},
-        {"actor": "Cyber", "method": "OT/SCADA Jamnagar refinery attack", "impact": "Refinery shutdown", "loss_estimate_bn": 10}
+        {
+          "actor": "Pakistan/China",
+          "method": "Undersea cable cut + Jamnagar precision strike",
+          "impact": "National fuel crisis in 72hrs",
+          "loss_estimate_bn": 50
+        },
+        {
+          "actor": "Cyber",
+          "method": "OT/SCADA Jamnagar refinery attack",
+          "impact": "Refinery shutdown",
+          "loss_estimate_bn": 10
+        }
       ],
-      "protections": ["S-400 air defense coverage", "Layered perimeter + sea patrol", "SCADA network isolation", "72hr strategic buffer stocks"],
-      "dependencies": ["ONGC.NS", "IOC.NS", "NTPC.NS", "ADANIPORTS.NS", "GAIL.NS"]
+      "protections": [
+        "S-400 air defense coverage",
+        "Layered perimeter + sea patrol",
+        "SCADA network isolation",
+        "72hr strategic buffer stocks"
+      ],
+      "dependencies": [
+        "ONGC.NS",
+        "IOC.NS",
+        "NTPC.NS",
+        "ADANIPORTS.NS",
+        "GAIL.NS"
+      ],
+      "leader": "Mukesh Ambani",
+      "valuation_t": 19.5
     },
     {
-      "ticker": "ONGC.NS", "name": "ONGC", "short": "ONGC",
-      "sector": "energy", "role": "Crude Oil Production",
-      "criticality": 9, "employees": 33000, "revenue_bn": 28.0,
+      "ticker": "ONGC.NS",
+      "name": "ONGC",
+      "short": "ONGC",
+      "sector": "energy",
+      "role": "Crude Oil Production",
+      "criticality": 9,
+      "employees": 26000,
+      "revenue_bn": 28.0,
       "description": "India's largest oil producer. Offshore platforms in Mumbai High, KG Basin. Loss forces dependency on hostile exporters.",
       "threats": [
-        {"actor": "China/Pakistan", "method": "Underwater drone attack on Mumbai High platforms", "impact": "65% domestic crude offline", "loss_estimate_bn": 40},
-        {"actor": "Cyber", "method": "Platform SCADA compromise", "impact": "Well blowout/explosion", "loss_estimate_bn": 8}
+        {
+          "actor": "China/Pakistan",
+          "method": "Underwater drone attack on Mumbai High platforms",
+          "impact": "65% domestic crude offline",
+          "loss_estimate_bn": 40
+        },
+        {
+          "actor": "Cyber",
+          "method": "Platform SCADA compromise",
+          "impact": "Well blowout/explosion",
+          "loss_estimate_bn": 8
+        }
       ],
-      "protections": ["Offshore naval patrol vessels", "Subsea camera grids", "Redundant SCADA with physical kill switches"],
-      "dependencies": ["RELIANCE.NS", "IOC.NS", "BPCL.NS", "GAIL.NS", "PETRONET.NS"]
+      "protections": [
+        "Offshore naval patrol vessels",
+        "Subsea camera grids",
+        "Redundant SCADA with physical kill switches"
+      ],
+      "dependencies": [
+        "RELIANCE.NS",
+        "IOC.NS",
+        "BPCL.NS",
+        "GAIL.NS",
+        "PETRONET.NS"
+      ],
+      "leader": "Arun Kumar Singh",
+      "valuation_t": 3.5
     },
     {
-      "ticker": "IOC.NS", "name": "Indian Oil Corp", "short": "IOC",
-      "sector": "energy", "role": "Fuel Distribution Network",
-      "criticality": 9, "employees": 34000, "revenue_bn": 100.0,
+      "ticker": "IOC.NS",
+      "name": "Indian Oil Corp",
+      "short": "IOC",
+      "sector": "energy",
+      "role": "Fuel Distribution Network",
+      "criticality": 9,
+      "employees": 34000,
+      "revenue_bn": 100.0,
       "description": "Operates 11 refineries and 50,000-km pipeline network. Distribution backbone for civilian and military fuel.",
       "threats": [
-        {"actor": "Terrorist", "method": "Pipeline bombing in multiple locations", "impact": "Fuel drought in border states", "loss_estimate_bn": 5},
-        {"actor": "Cyber", "method": "Pipeline SCADA ransomware (Colonial-style)", "impact": "15-day fuel crisis", "loss_estimate_bn": 12}
+        {
+          "actor": "Terrorist",
+          "method": "Pipeline bombing in multiple locations",
+          "impact": "Fuel drought in border states",
+          "loss_estimate_bn": 5
+        },
+        {
+          "actor": "Cyber",
+          "method": "Pipeline SCADA ransomware (Colonial-style)",
+          "impact": "15-day fuel crisis",
+          "loss_estimate_bn": 12
+        }
       ],
-      "protections": ["Underground pipeline sensors", "Rapid response teams at critical nodes", "Isolated OT network with manual override"],
-      "dependencies": ["ONGC.NS", "RELIANCE.NS", "BPCL.NS", "ADANIPORTS.NS", "CONCOR.NS"]
+      "protections": [
+        "Underground pipeline sensors",
+        "Rapid response teams at critical nodes",
+        "Isolated OT network with manual override"
+      ],
+      "dependencies": [
+        "ONGC.NS",
+        "RELIANCE.NS",
+        "BPCL.NS",
+        "ADANIPORTS.NS",
+        "CONCOR.NS"
+      ]
     },
     {
-      "ticker": "BPCL.NS", "name": "Bharat Petroleum", "short": "BPCL",
-      "sector": "energy", "role": "Strategic Petroleum Reserves",
-      "criticality": 8, "employees": 12000, "revenue_bn": 55.0,
+      "ticker": "BPCL.NS",
+      "name": "Bharat Petroleum",
+      "short": "BPCL",
+      "sector": "energy",
+      "role": "Strategic Petroleum Reserves",
+      "criticality": 8,
+      "employees": 12000,
+      "revenue_bn": 55.0,
       "description": "Manages strategic petroleum reserves and retail fuel. Critical buffer against supply shock.",
       "threats": [
-        {"actor": "State actor", "method": "Contamination of strategic reserves", "impact": "Unusable fuel stockpile", "loss_estimate_bn": 20},
-        {"actor": "Cyber", "method": "Reserve inventory system manipulation", "impact": "False reporting of fuel levels", "loss_estimate_bn": 3}
+        {
+          "actor": "State actor",
+          "method": "Contamination of strategic reserves",
+          "impact": "Unusable fuel stockpile",
+          "loss_estimate_bn": 20
+        },
+        {
+          "actor": "Cyber",
+          "method": "Reserve inventory system manipulation",
+          "impact": "False reporting of fuel levels",
+          "loss_estimate_bn": 3
+        }
       ],
-      "protections": ["Physical reserve security with Army cover", "Offline inventory systems", "Fuel quality testing at intervals"],
-      "dependencies": ["ONGC.NS", "IOC.NS", "GAIL.NS"]
+      "protections": [
+        "Physical reserve security with Army cover",
+        "Offline inventory systems",
+        "Fuel quality testing at intervals"
+      ],
+      "dependencies": [
+        "ONGC.NS",
+        "IOC.NS",
+        "GAIL.NS"
+      ]
     },
     {
-      "ticker": "GAIL.NS", "name": "GAIL India", "short": "GAIL",
-      "sector": "energy", "role": "Natural Gas Pipelines",
-      "criticality": 8, "employees": 4000, "revenue_bn": 17.0,
+      "ticker": "GAIL.NS",
+      "name": "GAIL India",
+      "short": "GAIL",
+      "sector": "energy",
+      "role": "Natural Gas Pipelines",
+      "criticality": 8,
+      "employees": 4800,
+      "revenue_bn": 17.0,
       "description": "Operates 15,000km of gas pipeline. Supplies gas to power plants and industry nationwide.",
       "threats": [
-        {"actor": "Terrorist", "method": "Multi-point pipeline explosion", "impact": "Power plant and fertilizer shutdown", "loss_estimate_bn": 8},
-        {"actor": "Cyber", "method": "Compressor station sabotage via OT", "impact": "Gas pressure loss nationwide", "loss_estimate_bn": 5}
+        {
+          "actor": "Terrorist",
+          "method": "Multi-point pipeline explosion",
+          "impact": "Power plant and fertilizer shutdown",
+          "loss_estimate_bn": 8
+        },
+        {
+          "actor": "Cyber",
+          "method": "Compressor station sabotage via OT",
+          "impact": "Gas pressure loss nationwide",
+          "loss_estimate_bn": 5
+        }
       ],
-      "protections": ["Drone monitoring of pipeline corridors", "SCADA air-gapping", "Emergency gas storage at nodes"],
-      "dependencies": ["ONGC.NS", "PETRONET.NS", "NTPC.NS", "RELIANCE.NS"]
+      "protections": [
+        "Drone monitoring of pipeline corridors",
+        "SCADA air-gapping",
+        "Emergency gas storage at nodes"
+      ],
+      "dependencies": [
+        "ONGC.NS",
+        "PETRONET.NS",
+        "NTPC.NS",
+        "RELIANCE.NS"
+      ],
+      "leader": "Sandeep Kumar Gupta",
+      "valuation_t": 1.4
     },
     {
-      "ticker": "OIL.NS", "name": "Oil India", "short": "OIL",
-      "sector": "energy", "role": "Northeast Oil Security",
-      "criticality": 7, "employees": 8000, "revenue_bn": 4.0,
-      "description": "Operates fields in Assam and Arunachal. Strategically vital for northeastern border supply — if cut, Army in the east has no local fuel.",
+      "ticker": "OIL.NS",
+      "name": "Oil India",
+      "short": "OIL",
+      "sector": "energy",
+      "role": "Northeast Oil Security",
+      "criticality": 7,
+      "employees": 8000,
+      "revenue_bn": 4.0,
+      "description": "Operates fields in Assam and Arunachal. Strategically vital for northeastern border supply \u2014 if cut, Army in the east has no local fuel.",
       "threats": [
-        {"actor": "China", "method": "Cyberattack on Assam field SCADA", "impact": "Eastern fuel supply line cut", "loss_estimate_bn": 4},
-        {"actor": "Insurgents", "method": "Physical attack on Duliajan facility", "impact": "Northeast supply disruption", "loss_estimate_bn": 2}
+        {
+          "actor": "China",
+          "method": "Cyberattack on Assam field SCADA",
+          "impact": "Eastern fuel supply line cut",
+          "loss_estimate_bn": 4
+        },
+        {
+          "actor": "Insurgents",
+          "method": "Physical attack on Duliajan facility",
+          "impact": "Northeast supply disruption",
+          "loss_estimate_bn": 2
+        }
       ],
-      "protections": ["Army Quick Reaction Teams at Duliajan", "SCADA air-gap", "Local fuel storage buffers"],
-      "dependencies": ["IOC.NS", "GAIL.NS", "ONGC.NS"]
+      "protections": [
+        "Army Quick Reaction Teams at Duliajan",
+        "SCADA air-gap",
+        "Local fuel storage buffers"
+      ],
+      "dependencies": [
+        "IOC.NS",
+        "GAIL.NS",
+        "ONGC.NS"
+      ]
     },
     {
-      "ticker": "PETRONET.NS", "name": "Petronet LNG", "short": "PETRONET",
-      "sector": "energy", "role": "LNG Import Terminals",
-      "criticality": 7, "employees": 1200, "revenue_bn": 5.5,
+      "ticker": "PETRONET.NS",
+      "name": "Petronet LNG",
+      "short": "PETRONET",
+      "sector": "energy",
+      "role": "LNG Import Terminals",
+      "criticality": 7,
+      "employees": 1200,
+      "revenue_bn": 5.5,
       "description": "Dahej and Kochi LNG terminals supply gas when domestic supply falls short. External dependency vulnerability.",
       "threats": [
-        {"actor": "China", "method": "Interdicting LNG tanker sea lanes", "impact": "Gas supply gap", "loss_estimate_bn": 6},
-        {"actor": "Cyber", "method": "Cryogenic storage system attack", "impact": "LNG terminal explosion", "loss_estimate_bn": 15}
+        {
+          "actor": "China",
+          "method": "Interdicting LNG tanker sea lanes",
+          "impact": "Gas supply gap",
+          "loss_estimate_bn": 6
+        },
+        {
+          "actor": "Cyber",
+          "method": "Cryogenic storage system attack",
+          "impact": "LNG terminal explosion",
+          "loss_estimate_bn": 15
+        }
       ],
-      "protections": ["IN patrol on SLOC", "Diversify suppliers (Qatar, USA, Australia)", "Terminal fire safety hardening"],
-      "dependencies": ["GAIL.NS", "ADANIPORTS.NS", "NTPC.NS"]
+      "protections": [
+        "IN patrol on SLOC",
+        "Diversify suppliers (Qatar, USA, Australia)",
+        "Terminal fire safety hardening"
+      ],
+      "dependencies": [
+        "GAIL.NS",
+        "ADANIPORTS.NS",
+        "NTPC.NS"
+      ]
     },
     {
-      "ticker": "NTPC.NS", "name": "NTPC", "short": "NTPC",
-      "sector": "energy", "role": "National Power Grid Generation",
-      "criticality": 10, "employees": 20000, "revenue_bn": 18.0,
+      "ticker": "NTPC.NS",
+      "name": "NTPC",
+      "short": "NTPC",
+      "sector": "energy",
+      "role": "National Power Grid Generation",
+      "criticality": 10,
+      "employees": 17000,
+      "revenue_bn": 18.0,
       "description": "Generates 70GW of India's power. Attacks here turn off factories, hospitals, and military bases simultaneously.",
       "threats": [
-        {"actor": "China (VOLT TYPHOON-style)", "method": "Grid SCADA pre-positioned cyberattack", "impact": "National blackout 72hrs+", "loss_estimate_bn": 100},
-        {"actor": "Kinetic", "method": "Precision missile strike on coal plants", "impact": "Regional power collapse", "loss_estimate_bn": 30}
+        {
+          "actor": "China (VOLT TYPHOON-style)",
+          "method": "Grid SCADA pre-positioned cyberattack",
+          "impact": "National blackout 72hrs+",
+          "loss_estimate_bn": 100
+        },
+        {
+          "actor": "Kinetic",
+          "method": "Precision missile strike on coal plants",
+          "impact": "Regional power collapse",
+          "loss_estimate_bn": 30
+        }
       ],
-      "protections": ["NCIIPC monitoring 24/7", "Multiple generation source types", "Missile defense coverage of major plants", "Manual override capability"],
-      "dependencies": ["COALINDIA.NS", "POWERGRID.NS", "GAIL.NS", "ONGC.NS"]
+      "protections": [
+        "NCIIPC monitoring 24/7",
+        "Multiple generation source types",
+        "Missile defense coverage of major plants",
+        "Manual override capability"
+      ],
+      "dependencies": [
+        "COALINDIA.NS",
+        "POWERGRID.NS",
+        "GAIL.NS",
+        "ONGC.NS"
+      ],
+      "leader": "Gurdeep Singh",
+      "valuation_t": 3.2
     },
     {
-      "ticker": "POWERGRID.NS", "name": "Power Grid Corp", "short": "PGCIL",
-      "sector": "energy", "role": "Electricity Transmission",
-      "criticality": 10, "employees": 9000, "revenue_bn": 4.8,
+      "ticker": "POWERGRID.NS",
+      "name": "Power Grid Corp",
+      "short": "PGCIL",
+      "sector": "energy",
+      "role": "Electricity Transmission",
+      "criticality": 10,
+      "employees": 9000,
+      "revenue_bn": 4.8,
       "description": "Operates 180,000km high-voltage transmission lines. The nerve that carries power from plants to cities.",
       "threats": [
-        {"actor": "China", "method": "Coordinated drone strike on transformer hubs", "impact": "Cascading grid failure", "loss_estimate_bn": 80},
-        {"actor": "Cyber", "method": "Energy management system compromise", "impact": "Controlled grid destabilization", "loss_estimate_bn": 50}
+        {
+          "actor": "China",
+          "method": "Coordinated drone strike on transformer hubs",
+          "impact": "Cascading grid failure",
+          "loss_estimate_bn": 80
+        },
+        {
+          "actor": "Cyber",
+          "method": "Energy management system compromise",
+          "impact": "Controlled grid destabilization",
+          "loss_estimate_bn": 50
+        }
       ],
-      "protections": ["Mesh topology redundancy", "Anti-drone systems at transformer hubs", "Offline EMS backup", "Strategic transformer stockpile"],
-      "dependencies": ["NTPC.NS", "ABB.NS", "SIEMENS.NS"]
+      "protections": [
+        "Mesh topology redundancy",
+        "Anti-drone systems at transformer hubs",
+        "Offline EMS backup",
+        "Strategic transformer stockpile"
+      ],
+      "dependencies": [
+        "NTPC.NS",
+        "ABB.NS",
+        "SIEMENS.NS"
+      ]
     },
     {
-      "ticker": "COALINDIA.NS", "name": "Coal India", "short": "CIL",
-      "sector": "energy", "role": "Power Raw Material",
-      "criticality": 8, "employees": 250000, "revenue_bn": 17.0,
+      "ticker": "COALINDIA.NS",
+      "name": "Coal India",
+      "short": "CIL",
+      "sector": "energy",
+      "role": "Power Raw Material",
+      "criticality": 8,
+      "employees": 250000,
+      "revenue_bn": 17.0,
       "description": "Supplies 80% of coal to thermal power plants. A strike or disruption here throttles India's entire electricity supply.",
       "threats": [
-        {"actor": "Naxals / Foreign-funded unions", "method": "Mass strike + rail sabotage", "impact": "Power plants go dark in 10 days", "loss_estimate_bn": 15},
-        {"actor": "Cyber", "method": "Mine dispatch SCADA attack", "impact": "Coal logistics paralysis", "loss_estimate_bn": 5}
+        {
+          "actor": "Naxals / Foreign-funded unions",
+          "method": "Mass strike + rail sabotage",
+          "impact": "Power plants go dark in 10 days",
+          "loss_estimate_bn": 15
+        },
+        {
+          "actor": "Cyber",
+          "method": "Mine dispatch SCADA attack",
+          "impact": "Coal logistics paralysis",
+          "loss_estimate_bn": 5
+        }
       ],
-      "protections": ["Strategic coal stockpile mandate (30 days)", "CISF security at mines", "Rail alternate routing plans"],
-      "dependencies": ["NTPC.NS", "IOC.NS", "RVNL.NS", "CONCOR.NS"]
+      "protections": [
+        "Strategic coal stockpile mandate (30 days)",
+        "CISF security at mines",
+        "Rail alternate routing plans"
+      ],
+      "dependencies": [
+        "NTPC.NS",
+        "IOC.NS",
+        "RVNL.NS",
+        "CONCOR.NS"
+      ]
     },
     {
-      "ticker": "TATASTEEL.NS", "name": "Tata Steel", "short": "TATASTEEL",
-      "sector": "energy", "role": "Armor Grade Steel Production",
-      "criticality": 8, "employees": 35000, "revenue_bn": 24.0,
+      "ticker": "TATASTEEL.NS",
+      "name": "Tata Steel",
+      "short": "TATASTEEL",
+      "sector": "energy",
+      "role": "Armor Grade Steel Production",
+      "criticality": 8,
+      "employees": 35000,
+      "revenue_bn": 24.0,
       "description": "Only Indian maker of armor-grade steel for tanks and ships. Loss forces import of strategic material.",
       "threats": [
-        {"actor": "China", "method": "Dumping cheap steel to close Indian mills", "impact": "Domestic armor steel capacity loss", "loss_estimate_bn": 10},
-        {"actor": "Cyber/Kinetic", "method": "Blast furnace SCADA attack", "impact": "Jamshedpur plant shutdown", "loss_estimate_bn": 5}
+        {
+          "actor": "China",
+          "method": "Dumping cheap steel to close Indian mills",
+          "impact": "Domestic armor steel capacity loss",
+          "loss_estimate_bn": 10
+        },
+        {
+          "actor": "Cyber/Kinetic",
+          "method": "Blast furnace SCADA attack",
+          "impact": "Jamshedpur plant shutdown",
+          "loss_estimate_bn": 5
+        }
       ],
-      "protections": ["Anti-dumping duties", "Strategic steel reserve", "SCADA hardening", "Alternate UK plant"],
-      "dependencies": ["COALINDIA.NS", "NTPC.NS", "ADANIPORTS.NS"]
+      "protections": [
+        "Anti-dumping duties",
+        "Strategic steel reserve",
+        "SCADA hardening",
+        "Alternate UK plant"
+      ],
+      "dependencies": [
+        "COALINDIA.NS",
+        "NTPC.NS",
+        "ADANIPORTS.NS"
+      ]
     },
     {
-      "ticker": "JSWSTEEL.NS", "name": "JSW Steel", "short": "JSW",
-      "sector": "energy", "role": "Infrastructure & Construction Steel",
-      "criticality": 7, "employees": 22000, "revenue_bn": 20.0,
+      "ticker": "JSWSTEEL.NS",
+      "name": "JSW Steel",
+      "short": "JSW",
+      "sector": "energy",
+      "role": "Infrastructure & Construction Steel",
+      "criticality": 7,
+      "employees": 22000,
+      "revenue_bn": 20.0,
       "description": "Key steel supplier for bridges, rail, and construction. Hits here slow border road and bunker construction.",
       "threats": [
-        {"actor": "Economic", "method": "Global iron ore price manipulation", "impact": "Production margin collapse", "loss_estimate_bn": 6},
-        {"actor": "Cyber", "method": "Rolling mill control system attack", "impact": "Plant damage", "loss_estimate_bn": 3}
+        {
+          "actor": "Economic",
+          "method": "Global iron ore price manipulation",
+          "impact": "Production margin collapse",
+          "loss_estimate_bn": 6
+        },
+        {
+          "actor": "Cyber",
+          "method": "Rolling mill control system attack",
+          "impact": "Plant damage",
+          "loss_estimate_bn": 3
+        }
       ],
-      "protections": ["Domestic iron ore sourcing", "OT security upgrade", "Inventory buffer"],
-      "dependencies": ["COALINDIA.NS", "NTPC.NS", "ADANIPORTS.NS", "TATASTEEL.NS"]
+      "protections": [
+        "Domestic iron ore sourcing",
+        "OT security upgrade",
+        "Inventory buffer"
+      ],
+      "dependencies": [
+        "COALINDIA.NS",
+        "NTPC.NS",
+        "ADANIPORTS.NS",
+        "TATASTEEL.NS"
+      ]
     },
     {
-      "ticker": "HINDALCO.NS", "name": "Hindalco", "short": "HINDALCO",
-      "sector": "energy", "role": "Aerospace Grade Aluminum",
-      "criticality": 7, "employees": 20000, "revenue_bn": 24.0,
+      "ticker": "HINDALCO.NS",
+      "name": "Hindalco",
+      "short": "HINDALCO",
+      "sector": "energy",
+      "role": "Aerospace Grade Aluminum",
+      "criticality": 7,
+      "employees": 20000,
+      "revenue_bn": 24.0,
       "description": "Produces aerospace-grade aluminum used in aircraft frames and missile bodies. Critical aerospace material.",
       "threats": [
-        {"actor": "China", "method": "Bauxite supply cutoff", "impact": "Aluminum production halted", "loss_estimate_bn": 8},
-        {"actor": "Cyber", "method": "Smelter control system attack", "impact": "Plant fire + 6-month shutdown", "loss_estimate_bn": 4}
+        {
+          "actor": "China",
+          "method": "Bauxite supply cutoff",
+          "impact": "Aluminum production halted",
+          "loss_estimate_bn": 8
+        },
+        {
+          "actor": "Cyber",
+          "method": "Smelter control system attack",
+          "impact": "Plant fire + 6-month shutdown",
+          "loss_estimate_bn": 4
+        }
       ],
-      "protections": ["Bauxite stockpiles from Odisha mines", "Smelter fire-suppression AI", "Import diversification"],
-      "dependencies": ["COALINDIA.NS", "NTPC.NS", "HAL.NS"]
+      "protections": [
+        "Bauxite stockpiles from Odisha mines",
+        "Smelter fire-suppression AI",
+        "Import diversification"
+      ],
+      "dependencies": [
+        "COALINDIA.NS",
+        "NTPC.NS",
+        "HAL.NS"
+      ]
     },
     {
-      "ticker": "SBIN.NS", "name": "State Bank of India", "short": "SBI",
-      "sector": "finance", "role": "Public Banking Trust & Defense Financing",
-      "criticality": 10, "employees": 230000, "revenue_bn": 32.0,
+      "ticker": "SBIN.NS",
+      "name": "State Bank of India",
+      "short": "SBI",
+      "sector": "finance",
+      "role": "Public Banking Trust & Defense Financing",
+      "criticality": 10,
+      "employees": 235000,
+      "revenue_bn": 32.0,
       "description": "Largest public bank. Finances defense procurement, pays Army salaries. A run on SBI triggers state-level panic.",
       "threats": [
-        {"actor": "Adversary State", "method": "Orchestrated social media bank-run narrative", "impact": "Mass withdrawal panic", "loss_estimate_bn": 100},
-        {"actor": "Cyber", "method": "Core banking system ransomware", "impact": "Payments and ATMs offline", "loss_estimate_bn": 20}
+        {
+          "actor": "Adversary State",
+          "method": "Orchestrated social media bank-run narrative",
+          "impact": "Mass withdrawal panic",
+          "loss_estimate_bn": 100
+        },
+        {
+          "actor": "Cyber",
+          "method": "Core banking system ransomware",
+          "impact": "Payments and ATMs offline",
+          "loss_estimate_bn": 20
+        }
       ],
-      "protections": ["RBI emergency liquidity backstop", "Disinformation counter-narrative team", "Cold-standby core banking system"],
-      "dependencies": ["HDFCBANK.NS", "TCS.NS", "BHARTIARTL.NS", "CDSL.NS"]
+      "protections": [
+        "RBI emergency liquidity backstop",
+        "Disinformation counter-narrative team",
+        "Cold-standby core banking system"
+      ],
+      "dependencies": [
+        "HDFCBANK.NS",
+        "TCS.NS",
+        "BHARTIARTL.NS",
+        "CDSL.NS"
+      ],
+      "leader": "Dinesh Kumar Khara",
+      "valuation_t": 6.8
     },
     {
-      "ticker": "HDFCBANK.NS", "name": "HDFC Bank", "short": "HDFC",
-      "sector": "finance", "role": "Private Liquidity & Corporate Banking",
-      "criticality": 9, "employees": 120000, "revenue_bn": 21.0,
+      "ticker": "HDFCBANK.NS",
+      "name": "HDFC Bank",
+      "short": "HDFC",
+      "sector": "finance",
+      "role": "Private Liquidity & Corporate Banking",
+      "criticality": 9,
+      "employees": 175000,
+      "revenue_bn": 21.0,
       "description": "Largest private bank. Corporate credit backbone. Failure freezes private sector payroll and supply-chains.",
       "threats": [
-        {"actor": "Cyber", "method": "SWIFT system compromise for fraudulent transfers", "impact": "Systemic liquidity crisis", "loss_estimate_bn": 15},
-        {"actor": "State Actor", "method": "Coordinated loan-book attack via shell companies", "impact": "NPL crisis + RBI intervention", "loss_estimate_bn": 30}
+        {
+          "actor": "Cyber",
+          "method": "SWIFT system compromise for fraudulent transfers",
+          "impact": "Systemic liquidity crisis",
+          "loss_estimate_bn": 15
+        },
+        {
+          "actor": "State Actor",
+          "method": "Coordinated loan-book attack via shell companies",
+          "impact": "NPL crisis + RBI intervention",
+          "loss_estimate_bn": 30
+        }
       ],
-      "protections": ["SWIFT anomaly AI monitoring", "Stress-test capital buffers", "Real-time fraud detection ML"],
-      "dependencies": ["SBIN.NS", "TCS.NS", "CDSL.NS", "ICICIBANK.NS"]
+      "protections": [
+        "SWIFT anomaly AI monitoring",
+        "Stress-test capital buffers",
+        "Real-time fraud detection ML"
+      ],
+      "dependencies": [
+        "SBIN.NS",
+        "TCS.NS",
+        "CDSL.NS",
+        "ICICIBANK.NS"
+      ],
+      "leader": "Sashidhar Jagdishan",
+      "valuation_t": 11.5
     },
     {
-      "ticker": "ICICIBANK.NS", "name": "ICICI Bank", "short": "ICICI",
-      "sector": "finance", "role": "Corporate Trade Finance",
-      "criticality": 8, "employees": 105000, "revenue_bn": 14.0,
+      "ticker": "ICICIBANK.NS",
+      "name": "ICICI Bank",
+      "short": "ICICI",
+      "sector": "finance",
+      "role": "Corporate Trade Finance",
+      "criticality": 8,
+      "employees": 105000,
+      "revenue_bn": 14.0,
       "description": "Finances India's export-import trade. Disruption stops defense imports and trade settlements.",
       "threats": [
-        {"actor": "Cyber", "method": "Fraudulent trade finance document injection", "impact": "Export revenue misrouted", "loss_estimate_bn": 5},
-        {"actor": "Social Engineering", "method": "CEO fraud against treasury team", "impact": "Large capital outflow", "loss_estimate_bn": 1}
+        {
+          "actor": "Cyber",
+          "method": "Fraudulent trade finance document injection",
+          "impact": "Export revenue misrouted",
+          "loss_estimate_bn": 5
+        },
+        {
+          "actor": "Social Engineering",
+          "method": "CEO fraud against treasury team",
+          "impact": "Large capital outflow",
+          "loss_estimate_bn": 1
+        }
       ],
-      "protections": ["AI document verification", "Multi-party treasury authorization", "Real-time transaction monitoring"],
-      "dependencies": ["HDFCBANK.NS", "SBIN.NS", "TCS.NS", "AXISBANK.NS"]
+      "protections": [
+        "AI document verification",
+        "Multi-party treasury authorization",
+        "Real-time transaction monitoring"
+      ],
+      "dependencies": [
+        "HDFCBANK.NS",
+        "SBIN.NS",
+        "TCS.NS",
+        "AXISBANK.NS"
+      ]
     },
     {
-      "ticker": "AXISBANK.NS", "name": "Axis Bank", "short": "AXIS",
-      "sector": "finance", "role": "Trade Finance & SME Banking",
-      "criticality": 7, "employees": 64000, "revenue_bn": 9.0,
+      "ticker": "AXISBANK.NS",
+      "name": "Axis Bank",
+      "short": "AXIS",
+      "sector": "finance",
+      "role": "Trade Finance & SME Banking",
+      "criticality": 7,
+      "employees": 64000,
+      "revenue_bn": 9.0,
       "description": "Third-largest private bank. Defense SME supply-chain financing. Stress here ripples into defense vendor payments.",
       "threats": [
-        {"actor": "Cyber", "method": "UPI payment system DDoS", "impact": "Retail payments offline", "loss_estimate_bn": 2},
-        {"actor": "Fraud", "method": "KYC data theft for mass impersonation", "impact": "Account takeover at scale", "loss_estimate_bn": 1}
+        {
+          "actor": "Cyber",
+          "method": "UPI payment system DDoS",
+          "impact": "Retail payments offline",
+          "loss_estimate_bn": 2
+        },
+        {
+          "actor": "Fraud",
+          "method": "KYC data theft for mass impersonation",
+          "impact": "Account takeover at scale",
+          "loss_estimate_bn": 1
+        }
       ],
-      "protections": ["UPI rate-limiting and circuit breakers", "KYC encryption at rest", "Fraud ML models"],
-      "dependencies": ["SBIN.NS", "HDFCBANK.NS", "PAYTM.NS"]
+      "protections": [
+        "UPI rate-limiting and circuit breakers",
+        "KYC encryption at rest",
+        "Fraud ML models"
+      ],
+      "dependencies": [
+        "SBIN.NS",
+        "HDFCBANK.NS",
+        "PAYTM.NS"
+      ]
     },
     {
-      "ticker": "TCS.NS", "name": "Tata Consultancy Services", "short": "TCS",
-      "sector": "finance", "role": "Govt Digital Infrastructure Backend",
-      "criticality": 10, "employees": 616000, "revenue_bn": 28.0,
+      "ticker": "TCS.NS",
+      "name": "Tata Consultancy Services",
+      "short": "TCS",
+      "sector": "finance",
+      "role": "Govt Digital Infrastructure Backend",
+      "criticality": 10,
+      "employees": 600000,
+      "revenue_bn": 28.0,
       "description": "Runs IT for IRCTC, Income Tax, defense payroll, banking backends. Single point of failure for government digital services.",
       "threats": [
-        {"actor": "China (APT groups)", "method": "Supply-chain attack via contractor access", "impact": "Govt database exfiltration", "loss_estimate_bn": 30},
-        {"actor": "Cyber", "method": "Insider threat with privileged access", "impact": "Tax and payroll system manipulation", "loss_estimate_bn": 10}
+        {
+          "actor": "China (APT groups)",
+          "method": "Supply-chain attack via contractor access",
+          "impact": "Govt database exfiltration",
+          "loss_estimate_bn": 30
+        },
+        {
+          "actor": "Cyber",
+          "method": "Insider threat with privileged access",
+          "impact": "Tax and payroll system manipulation",
+          "loss_estimate_bn": 10
+        }
       ],
-      "protections": ["Zero-trust architecture for govt contracts", "Privileged access management (PAM)", "Regular third-party security audits"],
-      "dependencies": ["SBIN.NS", "HDFCBANK.NS", "BHARTIARTL.NS", "INFY.NS"]
+      "protections": [
+        "Zero-trust architecture for govt contracts",
+        "Privileged access management (PAM)",
+        "Regular third-party security audits"
+      ],
+      "dependencies": [
+        "SBIN.NS",
+        "HDFCBANK.NS",
+        "BHARTIARTL.NS",
+        "INFY.NS"
+      ],
+      "leader": "K. Krithivasan",
+      "valuation_t": 14.2
     },
     {
-      "ticker": "INFY.NS", "name": "Infosys", "short": "INFY",
-      "sector": "finance", "role": "Tech Infrastructure for Banks & Govt",
-      "criticality": 9, "employees": 320000, "revenue_bn": 18.5,
+      "ticker": "INFY.NS",
+      "name": "Infosys",
+      "short": "INFY",
+      "sector": "finance",
+      "role": "Tech Infrastructure for Banks & Govt",
+      "criticality": 9,
+      "employees": 320000,
+      "revenue_bn": 18.5,
       "description": "Finacle banking platform powers 100+ banks. A compromise here simultaneously destabilizes India's entire banking sector.",
       "threats": [
-        {"actor": "Cyber", "method": "Finacle source code compromise", "impact": "All banks on Finacle simultaneously vulnerable", "loss_estimate_bn": 50},
-        {"actor": "State Actor", "method": "Targeted ransomware on Pune/Bengaluru DCs", "impact": "Bank operations frozen", "loss_estimate_bn": 8}
+        {
+          "actor": "Cyber",
+          "method": "Finacle source code compromise",
+          "impact": "All banks on Finacle simultaneously vulnerable",
+          "loss_estimate_bn": 50
+        },
+        {
+          "actor": "State Actor",
+          "method": "Targeted ransomware on Pune/Bengaluru DCs",
+          "impact": "Bank operations frozen",
+          "loss_estimate_bn": 8
+        }
       ],
-      "protections": ["Air-gapped Finacle source repository", "Multi-region DC failover", "Penetration testing every quarter"],
-      "dependencies": ["TCS.NS", "HDFCBANK.NS", "SBIN.NS", "BHARTIARTL.NS"]
+      "protections": [
+        "Air-gapped Finacle source repository",
+        "Multi-region DC failover",
+        "Penetration testing every quarter"
+      ],
+      "dependencies": [
+        "TCS.NS",
+        "HDFCBANK.NS",
+        "SBIN.NS",
+        "BHARTIARTL.NS"
+      ]
     },
     {
-      "ticker": "HCLTECH.NS", "name": "HCL Technologies", "short": "HCL",
-      "sector": "finance", "role": "Cybersecurity & IT for Defense",
-      "criticality": 8, "employees": 227000, "revenue_bn": 13.0,
+      "ticker": "HCLTECH.NS",
+      "name": "HCL Technologies",
+      "short": "HCL",
+      "sector": "finance",
+      "role": "Cybersecurity & IT for Defense",
+      "criticality": 8,
+      "employees": 227000,
+      "revenue_bn": 13.0,
       "description": "Provides cybersecurity services for defense PSUs, manages critical government data centers.",
       "threats": [
-        {"actor": "APT Groups", "method": "Compromise HCL to pivot to defense client networks", "impact": "Mass defense network breach", "loss_estimate_bn": 25},
-        {"actor": "Insider", "method": "Defense project employee poaching by foreign actors", "impact": "Classified data exfiltration", "loss_estimate_bn": 10}
+        {
+          "actor": "APT Groups",
+          "method": "Compromise HCL to pivot to defense client networks",
+          "impact": "Mass defense network breach",
+          "loss_estimate_bn": 25
+        },
+        {
+          "actor": "Insider",
+          "method": "Defense project employee poaching by foreign actors",
+          "impact": "Classified data exfiltration",
+          "loss_estimate_bn": 10
+        }
       ],
-      "protections": ["Client isolation (no cross-client data sharing)", "Insider threat program", "Security clearance requirements for defense staff"],
-      "dependencies": ["TCS.NS", "INFY.NS", "BHARTIARTL.NS", "BEL.NS"]
+      "protections": [
+        "Client isolation (no cross-client data sharing)",
+        "Insider threat program",
+        "Security clearance requirements for defense staff"
+      ],
+      "dependencies": [
+        "TCS.NS",
+        "INFY.NS",
+        "BHARTIARTL.NS",
+        "BEL.NS"
+      ]
     },
     {
-      "ticker": "CDSL.NS", "name": "CDSL", "short": "CDSL",
-      "sector": "finance", "role": "Asset Ownership Records (Shares)",
-      "criticality": 9, "employees": 1200, "revenue_bn": 0.2,
+      "ticker": "CDSL.NS",
+      "name": "CDSL",
+      "short": "CDSL",
+      "sector": "finance",
+      "role": "Asset Ownership Records (Shares)",
+      "criticality": 9,
+      "employees": 1200,
+      "revenue_bn": 0.2,
       "description": "Central depository holding ownership records of 90M+ investors. Corruption or loss would destroy ownership evidence for all listed assets.",
       "threats": [
-        {"actor": "Cyber", "method": "Database corruption or ransom", "impact": "Property rights chaos + market collapse", "loss_estimate_bn": 500},
-        {"actor": "Insider", "method": "Record falsification", "impact": "Ownership disputes at scale", "loss_estimate_bn": 50}
+        {
+          "actor": "Cyber",
+          "method": "Database corruption or ransom",
+          "impact": "Property rights chaos + market collapse",
+          "loss_estimate_bn": 500
+        },
+        {
+          "actor": "Insider",
+          "method": "Record falsification",
+          "impact": "Ownership disputes at scale",
+          "loss_estimate_bn": 50
+        }
       ],
-      "protections": ["Immutable blockchain backup", "Real-time hash verification", "Air-gapped cold backup updated daily"],
-      "dependencies": ["SBIN.NS", "HDFCBANK.NS", "TCS.NS"]
+      "protections": [
+        "Immutable blockchain backup",
+        "Real-time hash verification",
+        "Air-gapped cold backup updated daily"
+      ],
+      "dependencies": [
+        "SBIN.NS",
+        "HDFCBANK.NS",
+        "TCS.NS"
+      ]
     },
     {
-      "ticker": "PAYTM.NS", "name": "Paytm (One97)", "short": "PAYTM",
-      "sector": "finance", "role": "Digital Payments for 300M Users",
-      "criticality": 7, "employees": 10000, "revenue_bn": 0.8,
+      "ticker": "PAYTM.NS",
+      "name": "Paytm (One97)",
+      "short": "PAYTM",
+      "sector": "finance",
+      "role": "Digital Payments for 300M Users",
+      "criticality": 7,
+      "employees": 10000,
+      "revenue_bn": 0.8,
       "description": "UPI payments platform for 300M consumers. Disruption halts daily commerce and cash flow for small businesses.",
       "threats": [
-        {"actor": "Cyber", "method": "UPI DDoS during festive shopping", "impact": "Consumer payment freeze", "loss_estimate_bn": 1},
-        {"actor": "Social Engineering", "method": "Mass phishing of Paytm users", "impact": "Consumer fund theft at scale", "loss_estimate_bn": 0.5}
+        {
+          "actor": "Cyber",
+          "method": "UPI DDoS during festive shopping",
+          "impact": "Consumer payment freeze",
+          "loss_estimate_bn": 1
+        },
+        {
+          "actor": "Social Engineering",
+          "method": "Mass phishing of Paytm users",
+          "impact": "Consumer fund theft at scale",
+          "loss_estimate_bn": 0.5
+        }
       ],
-      "protections": ["Multi-CDN DDoS mitigation", "Behavioral fraud AI", "NPCI failover integration"],
-      "dependencies": ["AXISBANK.NS", "BHARTIARTL.NS", "JIOFIN.NS"]
+      "protections": [
+        "Multi-CDN DDoS mitigation",
+        "Behavioral fraud AI",
+        "NPCI failover integration"
+      ],
+      "dependencies": [
+        "AXISBANK.NS",
+        "BHARTIARTL.NS",
+        "JIOFIN.NS"
+      ]
     },
     {
-      "ticker": "BHARTIARTL.NS", "name": "Bharti Airtel", "short": "AIRTEL",
-      "sector": "finance", "role": "Strategic Telecom & Military Communications",
-      "criticality": 9, "employees": 17000, "revenue_bn": 16.0,
+      "ticker": "BHARTIARTL.NS",
+      "name": "Bharti Airtel",
+      "short": "AIRTEL",
+      "sector": "finance",
+      "role": "Strategic Telecom & Military Communications",
+      "criticality": 9,
+      "employees": 17000,
+      "revenue_bn": 16.0,
       "description": "Provides 5G, undersea cables, and satellite communications. Army forward units use Airtel satellite links. Loss blacks out border comms.",
       "threats": [
-        {"actor": "China", "method": "Undersea cable cut (Bay of Bengal chokepoints)", "impact": "International internet + military data links severed", "loss_estimate_bn": 20},
-        {"actor": "Cyber", "method": "BGP hijacking of Airtel routing tables", "impact": "Internet misrouted through adversary countries", "loss_estimate_bn": 8}
+        {
+          "actor": "China",
+          "method": "Undersea cable cut (Bay of Bengal chokepoints)",
+          "impact": "International internet + military data links severed",
+          "loss_estimate_bn": 20
+        },
+        {
+          "actor": "Cyber",
+          "method": "BGP hijacking of Airtel routing tables",
+          "impact": "Internet misrouted through adversary countries",
+          "loss_estimate_bn": 8
+        }
       ],
-      "protections": ["Sub-sea cable redundancy via multiple routes", "BGP route authentication (RPKI)", "Military satellite backup comms"],
-      "dependencies": ["SBIN.NS", "TCS.NS", "JIOFIN.NS", "POWERGRID.NS"]
+      "protections": [
+        "Sub-sea cable redundancy via multiple routes",
+        "BGP route authentication (RPKI)",
+        "Military satellite backup comms"
+      ],
+      "dependencies": [
+        "SBIN.NS",
+        "TCS.NS",
+        "JIOFIN.NS",
+        "POWERGRID.NS"
+      ]
     },
     {
-      "ticker": "JIOFIN.NS", "name": "Jio Financial Services", "short": "JIOFIN",
-      "sector": "finance", "role": "Emerging Fintech & Digital Banking",
-      "criticality": 6, "employees": 5000, "revenue_bn": 0.3,
+      "ticker": "JIOFIN.NS",
+      "name": "Jio Financial Services",
+      "short": "JIOFIN",
+      "sector": "finance",
+      "role": "Emerging Fintech & Digital Banking",
+      "criticality": 6,
+      "employees": 5000,
+      "revenue_bn": 0.3,
       "description": "New-age fintech built on Jio's 500M user base. Rapid growth creates new systemic risk vectors.",
       "threats": [
-        {"actor": "Cyber", "method": "API exploitation on fast-deployed features", "impact": "Mass account compromise", "loss_estimate_bn": 2},
-        {"actor": "Social", "method": "Deepfake-based fraud at scale via Jio platform", "impact": "Consumer trust collapse", "loss_estimate_bn": 1}
+        {
+          "actor": "Cyber",
+          "method": "API exploitation on fast-deployed features",
+          "impact": "Mass account compromise",
+          "loss_estimate_bn": 2
+        },
+        {
+          "actor": "Social",
+          "method": "Deepfake-based fraud at scale via Jio platform",
+          "impact": "Consumer trust collapse",
+          "loss_estimate_bn": 1
+        }
       ],
-      "protections": ["Security-by-design in fintech stack", "Deepfake detection on video KYC", "Phased feature rollout with red-team testing"],
-      "dependencies": ["BHARTIARTL.NS", "PAYTM.NS", "HDFCBANK.NS"]
+      "protections": [
+        "Security-by-design in fintech stack",
+        "Deepfake detection on video KYC",
+        "Phased feature rollout with red-team testing"
+      ],
+      "dependencies": [
+        "BHARTIARTL.NS",
+        "PAYTM.NS",
+        "HDFCBANK.NS"
+      ]
     },
     {
-      "ticker": "ADANIPORTS.NS", "name": "Adani Ports", "short": "APSEZ",
-      "sector": "logistics", "role": "Maritime Trade Gateways",
-      "criticality": 9, "employees": 5000, "revenue_bn": 3.4,
+      "ticker": "ADANIPORTS.NS",
+      "name": "Adani Ports",
+      "short": "APSEZ",
+      "sector": "logistics",
+      "role": "Maritime Trade Gateways",
+      "criticality": 9,
+      "employees": 3000,
+      "revenue_bn": 3.4,
       "description": "Controls Mundra (India's largest port), Hazira, and 12 other ports. 30% of India's cargo. Loss means defense imports and oil cannot land.",
       "threats": [
-        {"actor": "Pakistan Navy", "method": "Mining of Mundra harbor entrance", "impact": "Port closure 2-4 weeks", "loss_estimate_bn": 12},
-        {"actor": "Cyber", "method": "Port management system attack (NotPetya-style)", "impact": "Cargo paralysis", "loss_estimate_bn": 5}
+        {
+          "actor": "Pakistan Navy",
+          "method": "Mining of Mundra harbor entrance",
+          "impact": "Port closure 2-4 weeks",
+          "loss_estimate_bn": 12
+        },
+        {
+          "actor": "Cyber",
+          "method": "Port management system attack (NotPetya-style)",
+          "impact": "Cargo paralysis",
+          "loss_estimate_bn": 5
+        }
       ],
-      "protections": ["IN mine-countermeasures vessels on patrol", "Port system air-gap + manual backup", "Geo-dispersed port network"],
-      "dependencies": ["ONGC.NS", "RELIANCE.NS", "IOC.NS", "CONCOR.NS", "TATASTEEL.NS"]
+      "protections": [
+        "IN mine-countermeasures vessels on patrol",
+        "Port system air-gap + manual backup",
+        "Geo-dispersed port network"
+      ],
+      "dependencies": [
+        "ONGC.NS",
+        "RELIANCE.NS",
+        "IOC.NS",
+        "CONCOR.NS",
+        "TATASTEEL.NS"
+      ],
+      "leader": "Karan Adani",
+      "valuation_t": 2.8
     },
     {
-      "ticker": "CONCOR.NS", "name": "Container Corp of India", "short": "CONCOR",
-      "sector": "logistics", "role": "Heavy Freight Rail",
-      "criticality": 7, "employees": 1300, "revenue_bn": 1.4,
+      "ticker": "CONCOR.NS",
+      "name": "Container Corp of India",
+      "short": "CONCOR",
+      "sector": "logistics",
+      "role": "Heavy Freight Rail",
+      "criticality": 7,
+      "employees": 1500,
+      "revenue_bn": 1.4,
       "description": "Moves containers between ports and inland depots via Indian Railways. Critical link for defense supply chains.",
       "threats": [
-        {"actor": "Sabotage", "method": "Derailment of strategic freight trains", "impact": "Defense supply delay", "loss_estimate_bn": 2},
-        {"actor": "Cyber", "method": "Container tracking system manipulation", "impact": "Cargo misdirection + theft", "loss_estimate_bn": 1}
+        {
+          "actor": "Sabotage",
+          "method": "Derailment of strategic freight trains",
+          "impact": "Defense supply delay",
+          "loss_estimate_bn": 2
+        },
+        {
+          "actor": "Cyber",
+          "method": "Container tracking system manipulation",
+          "impact": "Cargo misdirection + theft",
+          "loss_estimate_bn": 1
+        }
       ],
-      "protections": ["Military escort for strategic cargo trains", "Real-time RFID tracking", "Alternate routing protocols"],
-      "dependencies": ["RVNL.NS", "ADANIPORTS.NS", "IOC.NS", "COALINDIA.NS"]
+      "protections": [
+        "Military escort for strategic cargo trains",
+        "Real-time RFID tracking",
+        "Alternate routing protocols"
+      ],
+      "dependencies": [
+        "RVNL.NS",
+        "ADANIPORTS.NS",
+        "IOC.NS",
+        "COALINDIA.NS"
+      ],
+      "leader": "Sanjay Swarup",
+      "valuation_t": 0.6
     },
     {
-      "ticker": "RVNL.NS", "name": "Rail Vikas Nigam", "short": "RVNL",
-      "sector": "logistics", "role": "Strategic Rail Construction",
-      "criticality": 8, "employees": 1800, "revenue_bn": 2.2,
+      "ticker": "RVNL.NS",
+      "name": "Rail Vikas Nigam",
+      "short": "RVNL",
+      "sector": "logistics",
+      "role": "Strategic Rail Construction",
+      "criticality": 8,
+      "employees": 1800,
+      "revenue_bn": 2.2,
       "description": "Builds strategic rail to border areas (Ladakh, Arunachal). Loss stalls troop and supply movement to forward areas.",
       "threats": [
-        {"actor": "China", "method": "Funding insurgent attacks on border rail construction", "impact": "Troop deployment timeline delayed 2-3 yrs", "loss_estimate_bn": 5},
-        {"actor": "Sabotage", "method": "Bridge bombing on strategic rail line", "impact": "Forward base isolation", "loss_estimate_bn": 3}
+        {
+          "actor": "China",
+          "method": "Funding insurgent attacks on border rail construction",
+          "impact": "Troop deployment timeline delayed 2-3 yrs",
+          "loss_estimate_bn": 5
+        },
+        {
+          "actor": "Sabotage",
+          "method": "Bridge bombing on strategic rail line",
+          "impact": "Forward base isolation",
+          "loss_estimate_bn": 3
+        }
       ],
-      "protections": ["Military engineer co-deployment", "Decoy construction timelines", "Air-supply backup planning"],
-      "dependencies": ["LT.NS", "IRCON.NS", "CONCOR.NS", "TATASTEEL.NS"]
+      "protections": [
+        "Military engineer co-deployment",
+        "Decoy construction timelines",
+        "Air-supply backup planning"
+      ],
+      "dependencies": [
+        "LT.NS",
+        "IRCON.NS",
+        "CONCOR.NS",
+        "TATASTEEL.NS"
+      ]
     },
     {
-      "ticker": "IRCON.NS", "name": "Ircon International", "short": "IRCON",
-      "sector": "logistics", "role": "Border Infrastructure Construction",
-      "criticality": 8, "employees": 2000, "revenue_bn": 1.0,
+      "ticker": "IRCON.NS",
+      "name": "Ircon International",
+      "short": "IRCON",
+      "sector": "logistics",
+      "role": "Border Infrastructure Construction",
+      "criticality": 8,
+      "employees": 2000,
+      "revenue_bn": 1.0,
       "description": "Builds roads, rail, and tunnels in border areas (Himalayas, Northeast). Directly enables Army forward deployment.",
       "threats": [
-        {"actor": "China", "method": "Bribing local contractors to delay projects", "impact": "Border road program 2yr delay", "loss_estimate_bn": 3},
-        {"actor": "Terrorist", "method": "Attack on tunnel construction (Zoji La, etc.)", "impact": "Loss of strategic connectivity", "loss_estimate_bn": 4}
+        {
+          "actor": "China",
+          "method": "Bribing local contractors to delay projects",
+          "impact": "Border road program 2yr delay",
+          "loss_estimate_bn": 3
+        },
+        {
+          "actor": "Terrorist",
+          "method": "Attack on tunnel construction (Zoji La, etc.)",
+          "impact": "Loss of strategic connectivity",
+          "loss_estimate_bn": 4
+        }
       ],
-      "protections": ["Army escort for construction crews", "IB vetting of all contractors", "Tunnel early-warning sensors"],
-      "dependencies": ["RVNL.NS", "LT.NS", "ULTRACEMCO.NS", "TATASTEEL.NS"]
+      "protections": [
+        "Army escort for construction crews",
+        "IB vetting of all contractors",
+        "Tunnel early-warning sensors"
+      ],
+      "dependencies": [
+        "RVNL.NS",
+        "LT.NS",
+        "ULTRACEMCO.NS",
+        "TATASTEEL.NS"
+      ]
     },
     {
-      "ticker": "TATAMOTORS.NS", "name": "Tata Motors", "short": "TATAMOTORS",
-      "sector": "logistics", "role": "Transport, Defense Trucks & Ambulances",
-      "criticality": 7, "employees": 83000, "revenue_bn": 43.0,
+      "ticker": "TATAMOTORS.NS",
+      "name": "Tata Motors",
+      "short": "TATAMOTORS",
+      "sector": "logistics",
+      "role": "Transport, Defense Trucks & Ambulances",
+      "criticality": 7,
+      "employees": 80000,
+      "revenue_bn": 43.0,
       "description": "Manufactures LPTA trucks for Army, ambulances, and civilian transport fleet that doubles as military logistics in wartime.",
       "threats": [
-        {"actor": "Cyber", "method": "Connected-vehicle C2 compromise", "impact": "Army truck fleet non-operational", "loss_estimate_bn": 4},
-        {"actor": "Supply-chain", "method": "Chip shortage exploitation", "impact": "Production halt", "loss_estimate_bn": 3}
+        {
+          "actor": "Cyber",
+          "method": "Connected-vehicle C2 compromise",
+          "impact": "Army truck fleet non-operational",
+          "loss_estimate_bn": 4
+        },
+        {
+          "actor": "Supply-chain",
+          "method": "Chip shortage exploitation",
+          "impact": "Production halt",
+          "loss_estimate_bn": 3
+        }
       ],
-      "protections": ["Offline military vehicle ECUs", "Chip stockpile for 6 months", "Alternate semiconductor sourcing"],
-      "dependencies": ["BHARATFORG.NS", "TATASTEEL.NS", "IOC.NS", "ASHOKLEY.NS"]
+      "protections": [
+        "Offline military vehicle ECUs",
+        "Chip stockpile for 6 months",
+        "Alternate semiconductor sourcing"
+      ],
+      "dependencies": [
+        "BHARATFORG.NS",
+        "TATASTEEL.NS",
+        "IOC.NS",
+        "ASHOKLEY.NS"
+      ],
+      "leader": "Girish Wagh",
+      "valuation_t": 3.6
     },
     {
-      "ticker": "ULTRACEMCO.NS", "name": "UltraTech Cement", "short": "ULTRATECH",
-      "sector": "logistics", "role": "Bunkers, Tunnels & Military Construction",
-      "criticality": 6, "employees": 25000, "revenue_bn": 8.0,
+      "ticker": "ULTRACEMCO.NS",
+      "name": "UltraTech Cement",
+      "short": "ULTRATECH",
+      "sector": "logistics",
+      "role": "Bunkers, Tunnels & Military Construction",
+      "criticality": 6,
+      "employees": 25000,
+      "revenue_bn": 8.0,
       "description": "Supplies cement for Army bunkers, border tunnels, and air-raid shelters. Backbone of military construction.",
       "threats": [
-        {"actor": "Economic", "method": "Limestone supply disruption", "impact": "Construction program slowdown", "loss_estimate_bn": 2},
-        {"actor": "Sabotage", "method": "Contamination of military-grade cement batch", "impact": "Structural failure of bunkers", "loss_estimate_bn": 5}
+        {
+          "actor": "Economic",
+          "method": "Limestone supply disruption",
+          "impact": "Construction program slowdown",
+          "loss_estimate_bn": 2
+        },
+        {
+          "actor": "Sabotage",
+          "method": "Contamination of military-grade cement batch",
+          "impact": "Structural failure of bunkers",
+          "loss_estimate_bn": 5
+        }
       ],
-      "protections": ["Quality testing for defense-grade batches", "Stockpile at military bases", "Dual suppliers for critical projects"],
-      "dependencies": ["NTPC.NS", "COALINDIA.NS", "IRCON.NS", "LT.NS"]
+      "protections": [
+        "Quality testing for defense-grade batches",
+        "Stockpile at military bases",
+        "Dual suppliers for critical projects"
+      ],
+      "dependencies": [
+        "NTPC.NS",
+        "COALINDIA.NS",
+        "IRCON.NS",
+        "LT.NS"
+      ]
     },
     {
-      "ticker": "ADANIENT.NS", "name": "Adani Enterprises", "short": "ADANIENT",
-      "sector": "logistics", "role": "Multi-sector Infrastructure Conglomerate",
-      "criticality": 8, "employees": 23000, "revenue_bn": 25.0,
+      "ticker": "ADANIENT.NS",
+      "name": "Adani Enterprises",
+      "short": "ADANIENT",
+      "sector": "logistics",
+      "role": "Multi-sector Infrastructure Conglomerate",
+      "criticality": 8,
+      "employees": 23000,
+      "revenue_bn": 25.0,
       "description": "Spans airports, roads, data centers, and defense. Single adversary action against Adani Group can destabilize multiple critical sectors.",
       "threats": [
-        {"actor": "Financial", "method": "Coordinated short-selling attack (Hindenburg-style)", "impact": "Capital flight across all subsidiaries", "loss_estimate_bn": 30},
-        {"actor": "State Actor", "method": "Targeting Adani-run airports as soft targets", "impact": "Aviation disruption", "loss_estimate_bn": 8}
+        {
+          "actor": "Financial",
+          "method": "Coordinated short-selling attack (Hindenburg-style)",
+          "impact": "Capital flight across all subsidiaries",
+          "loss_estimate_bn": 30
+        },
+        {
+          "actor": "State Actor",
+          "method": "Targeting Adani-run airports as soft targets",
+          "impact": "Aviation disruption",
+          "loss_estimate_bn": 8
+        }
       ],
-      "protections": ["Sovereign wealth fund backstop", "Cross-subsidiary firewall", "Airport security hardening"],
-      "dependencies": ["ADANIPORTS.NS", "NTPC.NS", "BHARTIARTL.NS", "LT.NS"]
+      "protections": [
+        "Sovereign wealth fund backstop",
+        "Cross-subsidiary firewall",
+        "Airport security hardening"
+      ],
+      "dependencies": [
+        "ADANIPORTS.NS",
+        "NTPC.NS",
+        "BHARTIARTL.NS",
+        "LT.NS"
+      ]
     },
     {
-      "ticker": "SIEMENS.NS", "name": "Siemens India", "short": "SIEMENS",
-      "sector": "logistics", "role": "Industrial Automation & Rail Electrification",
-      "criticality": 7, "employees": 9000, "revenue_bn": 2.2,
+      "ticker": "SIEMENS.NS",
+      "name": "Siemens India",
+      "short": "SIEMENS",
+      "sector": "logistics",
+      "role": "Industrial Automation & Rail Electrification",
+      "criticality": 7,
+      "employees": 9000,
+      "revenue_bn": 2.2,
       "description": "Supplies switchgear, rail electrification, and industrial control systems. Embedded in power grid and rail infrastructure.",
       "threats": [
-        {"actor": "Germany-origin supply chain", "method": "Hardware backdoor in PLC systems", "impact": "Industrial control compromise", "loss_estimate_bn": 8},
-        {"actor": "Cyber", "method": "Remote access to Siemens maintenance portals", "impact": "Rail and grid sabotage", "loss_estimate_bn": 10}
+        {
+          "actor": "Germany-origin supply chain",
+          "method": "Hardware backdoor in PLC systems",
+          "impact": "Industrial control compromise",
+          "loss_estimate_bn": 8
+        },
+        {
+          "actor": "Cyber",
+          "method": "Remote access to Siemens maintenance portals",
+          "impact": "Rail and grid sabotage",
+          "loss_estimate_bn": 10
+        }
       ],
-      "protections": ["PLC firmware verification", "Disable remote maintenance during conflict", "Domestic PLC alternative development"],
-      "dependencies": ["POWERGRID.NS", "NTPC.NS", "RVNL.NS", "ABB.NS"]
+      "protections": [
+        "PLC firmware verification",
+        "Disable remote maintenance during conflict",
+        "Domestic PLC alternative development"
+      ],
+      "dependencies": [
+        "POWERGRID.NS",
+        "NTPC.NS",
+        "RVNL.NS",
+        "ABB.NS"
+      ]
     },
     {
-      "ticker": "ABB.NS", "name": "ABB India", "short": "ABB",
-      "sector": "logistics", "role": "Grid Robotics & Substation Automation",
-      "criticality": 7, "employees": 7000, "revenue_bn": 1.5,
-      "description": "Automates power substations and industrial robots. Embedded in grid infrastructure — a backdoor here gives grid control.",
+      "ticker": "ABB.NS",
+      "name": "ABB India",
+      "short": "ABB",
+      "sector": "logistics",
+      "role": "Grid Robotics & Substation Automation",
+      "criticality": 7,
+      "employees": 7000,
+      "revenue_bn": 1.5,
+      "description": "Automates power substations and industrial robots. Embedded in grid infrastructure \u2014 a backdoor here gives grid control.",
       "threats": [
-        {"actor": "Swiss-origin supply chain", "method": "Zero-day in grid automation software", "impact": "Substation remote shutdown", "loss_estimate_bn": 15},
-        {"actor": "Cyber", "method": "Loonie wiper on substation automation", "impact": "Grid node destruction", "loss_estimate_bn": 7}
+        {
+          "actor": "Swiss-origin supply chain",
+          "method": "Zero-day in grid automation software",
+          "impact": "Substation remote shutdown",
+          "loss_estimate_bn": 15
+        },
+        {
+          "actor": "Cyber",
+          "method": "Loonie wiper on substation automation",
+          "impact": "Grid node destruction",
+          "loss_estimate_bn": 7
+        }
       ],
-      "protections": ["Vendor source-code escrow", "Network isolation of substation automation", "Regular vulnerability disclosure program"],
-      "dependencies": ["POWERGRID.NS", "NTPC.NS", "SIEMENS.NS"]
+      "protections": [
+        "Vendor source-code escrow",
+        "Network isolation of substation automation",
+        "Regular vulnerability disclosure program"
+      ],
+      "dependencies": [
+        "POWERGRID.NS",
+        "NTPC.NS",
+        "SIEMENS.NS"
+      ]
     },
     {
-      "ticker": "INDIGO.NS", "name": "IndiGo (InterGlobe Aviation)", "short": "INDIGO",
-      "sector": "logistics", "role": "Civilian & Rapid Troop Transport",
-      "criticality": 7, "employees": 33000, "revenue_bn": 5.5,
+      "ticker": "INDIGO.NS",
+      "name": "IndiGo (InterGlobe Aviation)",
+      "short": "INDIGO",
+      "sector": "logistics",
+      "role": "Civilian & Rapid Troop Transport",
+      "criticality": 7,
+      "employees": 33000,
+      "revenue_bn": 5.5,
       "description": "Largest airline with 300+ aircraft. Commandeered under National Security Act for rapid troop/materiel airlifting.",
       "threats": [
-        {"actor": "Terrorist", "method": "Airport bombing at hub airports", "impact": "Rapid airlift capability destroyed", "loss_estimate_bn": 5},
-        {"actor": "Cyber", "method": "ATC + airline system simultaneous attack", "impact": "Aviation shutdown", "loss_estimate_bn": 8}
+        {
+          "actor": "Terrorist",
+          "method": "Airport bombing at hub airports",
+          "impact": "Rapid airlift capability destroyed",
+          "loss_estimate_bn": 5
+        },
+        {
+          "actor": "Cyber",
+          "method": "ATC + airline system simultaneous attack",
+          "impact": "Aviation shutdown",
+          "loss_estimate_bn": 8
+        }
       ],
-      "protections": ["BCAS aviation security protocol", "ATC system air-gap from internet", "Fleet dispersal to secondary airfields in crisis"],
-      "dependencies": ["ADANIPORTS.NS", "IOC.NS", "BHARTIARTL.NS", "ADANIENT.NS"]
+      "protections": [
+        "BCAS aviation security protocol",
+        "ATC system air-gap from internet",
+        "Fleet dispersal to secondary airfields in crisis"
+      ],
+      "dependencies": [
+        "ADANIPORTS.NS",
+        "IOC.NS",
+        "BHARTIARTL.NS",
+        "ADANIENT.NS"
+      ]
     },
     {
-      "ticker": "DLF.NS", "name": "DLF", "short": "DLF",
-      "sector": "logistics", "role": "Urban & Military Infrastructure",
-      "criticality": 5, "employees": 3000, "revenue_bn": 2.4,
+      "ticker": "DLF.NS",
+      "name": "DLF",
+      "short": "DLF",
+      "sector": "logistics",
+      "role": "Urban & Military Infrastructure",
+      "criticality": 5,
+      "employees": 3000,
+      "revenue_bn": 2.4,
       "description": "Major real estate / infrastructure developer. Builds cantonments, officer quarters, and urban housing for defense families.",
       "threats": [
-        {"actor": "Social", "method": "Foreign-funded NGOs delaying cantonment projects", "impact": "Defense housing shortage", "loss_estimate_bn": 1},
-        {"actor": "Cyber", "method": "BIM software attack on defense construction blueprints", "impact": "Design data theft", "loss_estimate_bn": 0.5}
+        {
+          "actor": "Social",
+          "method": "Foreign-funded NGOs delaying cantonment projects",
+          "impact": "Defense housing shortage",
+          "loss_estimate_bn": 1
+        },
+        {
+          "actor": "Cyber",
+          "method": "BIM software attack on defense construction blueprints",
+          "impact": "Design data theft",
+          "loss_estimate_bn": 0.5
+        }
       ],
-      "protections": ["Airgapped design systems for defense projects", "Vetting of contractors and subcontractors"],
-      "dependencies": ["ULTRACEMCO.NS", "LT.NS", "NTPC.NS"]
+      "protections": [
+        "Airgapped design systems for defense projects",
+        "Vetting of contractors and subcontractors"
+      ],
+      "dependencies": [
+        "ULTRACEMCO.NS",
+        "LT.NS",
+        "NTPC.NS"
+      ]
     },
     {
-      "ticker": "SUNPHARMA.NS", "name": "Sun Pharma", "short": "SUNPHARMA",
-      "sector": "logistics", "role": "Medical & Biological Security",
-      "criticality": 8, "employees": 36000, "revenue_bn": 5.5,
+      "ticker": "SUNPHARMA.NS",
+      "name": "Sun Pharma",
+      "short": "SUNPHARMA",
+      "sector": "logistics",
+      "role": "Medical & Biological Security",
+      "criticality": 8,
+      "employees": 36000,
+      "revenue_bn": 5.5,
       "description": "Largest Indian pharma company. Supplies antibiotics, antivirals, and vaccines to Army medical. Loss compromises soldier healthcare in conflict.",
       "threats": [
-        {"actor": "China", "method": "API raw-material supply cutoff (80% imported)", "impact": "Army drug shortage in war", "loss_estimate_bn": 10},
-        {"actor": "Biological", "method": "Contamination of military vaccine batch", "impact": "Mass casualty from contaminated doses", "loss_estimate_bn": 20}
+        {
+          "actor": "China",
+          "method": "API raw-material supply cutoff (80% imported)",
+          "impact": "Army drug shortage in war",
+          "loss_estimate_bn": 10
+        },
+        {
+          "actor": "Biological",
+          "method": "Contamination of military vaccine batch",
+          "impact": "Mass casualty from contaminated doses",
+          "loss_estimate_bn": 20
+        }
       ],
-      "protections": ["Domestic API manufacturing push", "6-month military drug stockpile", "Cold-chain integrity monitoring", "Batch testing by DRDO lab"],
-      "dependencies": ["SBIN.NS", "IOC.NS", "ADANIPORTS.NS", "BHARTIARTL.NS"]
+      "protections": [
+        "Domestic API manufacturing push",
+        "6-month military drug stockpile",
+        "Cold-chain integrity monitoring",
+        "Batch testing by DRDO lab"
+      ],
+      "dependencies": [
+        "SBIN.NS",
+        "IOC.NS",
+        "ADANIPORTS.NS",
+        "BHARTIARTL.NS"
+      ]
     }
   ],
   "sector_colors": {
@@ -608,10 +1832,78 @@
     "logistics": "#22c55e"
   },
   "threat_actors": [
-    {"id": "china", "name": "China (PLA/MSS/APT)", "type": "State", "primary_targets": ["defense", "energy", "logistics"], "methods": ["Cyber", "Supply-chain", "Kinetic", "Economic coercion"]},
-    {"id": "pakistan", "name": "Pakistan (ISI/Proxy)", "type": "State+Proxy", "primary_targets": ["defense", "logistics"], "methods": ["HUMINT", "Terrorism", "Kinetic strikes"]},
-    {"id": "cyber", "name": "APT Cyber Groups", "type": "Non-state", "primary_targets": ["finance", "energy", "defense"], "methods": ["Ransomware", "Zero-day", "Supply-chain compromise"]},
-    {"id": "internal", "name": "Insider Threat", "type": "Internal", "primary_targets": ["defense", "finance"], "methods": ["Espionage", "Sabotage", "Data theft"]},
-    {"id": "economic", "name": "Economic Warfare", "type": "State+Market", "primary_targets": ["finance", "energy"], "methods": ["Market manipulation", "Sanctions", "Dumping"]}
+    {
+      "id": "china",
+      "name": "China (PLA/MSS/APT)",
+      "type": "State",
+      "primary_targets": [
+        "defense",
+        "energy",
+        "logistics"
+      ],
+      "methods": [
+        "Cyber",
+        "Supply-chain",
+        "Kinetic",
+        "Economic coercion"
+      ]
+    },
+    {
+      "id": "pakistan",
+      "name": "Pakistan (ISI/Proxy)",
+      "type": "State+Proxy",
+      "primary_targets": [
+        "defense",
+        "logistics"
+      ],
+      "methods": [
+        "HUMINT",
+        "Terrorism",
+        "Kinetic strikes"
+      ]
+    },
+    {
+      "id": "cyber",
+      "name": "APT Cyber Groups",
+      "type": "Non-state",
+      "primary_targets": [
+        "finance",
+        "energy",
+        "defense"
+      ],
+      "methods": [
+        "Ransomware",
+        "Zero-day",
+        "Supply-chain compromise"
+      ]
+    },
+    {
+      "id": "internal",
+      "name": "Insider Threat",
+      "type": "Internal",
+      "primary_targets": [
+        "defense",
+        "finance"
+      ],
+      "methods": [
+        "Espionage",
+        "Sabotage",
+        "Data theft"
+      ]
+    },
+    {
+      "id": "economic",
+      "name": "Economic Warfare",
+      "type": "State+Market",
+      "primary_targets": [
+        "finance",
+        "energy"
+      ],
+      "methods": [
+        "Market manipulation",
+        "Sanctions",
+        "Dumping"
+      ]
+    }
   ]
 }

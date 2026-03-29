@@ -1,0 +1,232 @@
+/* ── MARKET INTELLIGENCE MODULE ───────────────────────── */
+
+/* View wrapper — only show flex when active */
+#view-risk.active {
+  display: flex;
+  flex-direction: column;
+}
+
+.market-view {
+  gap: 16px;
+  height: calc(100vh - 57px);
+  overflow: hidden;
+  padding: 16px 20px;
+}
+
+/* Top control bar */
+.market-controls {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+/* KPI strip */
+.market-kpis {
+  display: flex;
+  gap: 24px;
+  margin-left: auto;
+  align-items: center;
+}
+
+.kpi-item { text-align: right; }
+
+.kpi-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.kpi-value {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: var(--text);
+}
+
+/* Main layout */
+.market-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Chart panel */
+.market-chart-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.market-chart-body {
+  flex: 1;
+  position: relative;
+  padding: 16px;
+  min-height: 0;
+}
+
+.market-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+  gap: 8px;
+}
+
+.placeholder-icon { font-size: 48px; opacity: 0.3; }
+
+/* Legend items */
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Signals panel (right column) */
+.signals-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.signal-card { flex-shrink: 0; }
+
+/* Twitter sentiment display */
+.sentiment-score {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: var(--mono);
+  margin: 8px 0 4px;
+}
+
+.sentiment-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.sentiment-bar-bg {
+  height: 6px;
+  background: var(--bg3);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.sentiment-bar { height: 100%; border-radius: 3px; transition: width 0.6s; }
+
+.tweet-sample {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 8px;
+  background: var(--bg3);
+  border-radius: 4px;
+  line-height: 1.5;
+  border-left: 2px solid var(--border);
+}
+
+/* GDELT signal */
+.gdelt-signal-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  animation: pulse-dot 1.5s infinite;
+}
+
+.gdelt-signal-row {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 8px 0 4px;
+}
+
+.gdelt-headline {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  line-height: 1.6;
+  padding: 8px;
+  background: var(--bg3);
+  border-radius: 4px;
+}
+
+/* Key Events list */
+.event-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+.event-row:last-child { border-bottom: none; }
+
+.event-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.event-date {
+  font-family: var(--mono);
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-size: 10px;
+  width: 68px;
+  flex-shrink: 0;
+}
+
+.event-label { color: var(--text-dim); line-height: 1.4; }
+
+/* News headlines */
+.news-headline {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+.news-headline:last-child { border-bottom: none; }
+
+.news-sentiment-dot {
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+  width: 12px;
+  text-align: center;
+}
+
+.news-title {
+  color: var(--text-dim);
+  text-decoration: none;
+  line-height: 1.4;
+  display: block;
+  transition: color 0.2s;
+}
+.news-title:hover { color: var(--accent); }
+
+.news-source {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}

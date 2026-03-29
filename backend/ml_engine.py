@@ -54,6 +54,8 @@ def compute_risk_scores():
             "criticality": n["criticality"],
             "employees": n["employees"],
             "revenue_bn": n["revenue_bn"],
+            "valuation_t": n.get("valuation_t"),
+            "leader": n.get("leader"),
         })
 
     return sorted(results, key=lambda x: x["risk_score"], reverse=True)

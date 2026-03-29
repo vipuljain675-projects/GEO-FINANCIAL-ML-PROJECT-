@@ -12,10 +12,22 @@ const viewSub = document.getElementById('view-sub');
 const viewConfigs = {
   'overview': { title: 'Strategic Overview', sub: 'National Critical Infrastructure Analysis' },
   'network': { title: 'Dependency Network', sub: 'Inter-company Critical Links' },
-  'threat-sim': { title: 'Threat Simulator', sub: 'Cascade Failure Projections' },
-  'risk': { title: 'Risk Matrix', sub: 'ML-driven Vulnerability Scoring' },
-  'analyst': { title: 'Sentinel AI Analyst', sub: 'Encrypted Strategic Intelligence' }
+  'threat-sim': { title: 'Scenario Engine', sub: 'AI Gen. Actionable Scenarios' },
+  'risk': { title: 'Market Intelligence', sub: 'NSE Stock History · ML Forecast · Twitter + GDELT Signals' },
+  'analyst': { title: 'Sentinel AI Analyst', sub: 'Encrypted Strategic Intelligence' },
+  'portfolio': { title: 'Personal Advisor', sub: 'Individualized Wealth Risk & Strategic Advisory' }
 };
+
+// --- AUTH HELPERS ---
+function getAuthHeaders() {
+  const token = localStorage.getItem('sentinel_token');
+  if (token) return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+  return { 'Content-Type': 'application/json' };
+}
+
+function isGuest() {
+  return localStorage.getItem('sentinel_guest') === 'true' && !localStorage.getItem('sentinel_token');
+}
 
 // Initialize
 async function init() {
@@ -24,46 +36,42 @@ async function init() {
   
   // Navigation
   navItems.forEach(item => {
-    item.addEventListener('click', () => switchView(item.dataset.view));
+    item.addEventListener('click', () => {
+      switchView(item.dataset.view);
+      
+      if (item.dataset.view === 'risk' && typeof initMarketIntelligence === 'function') {
+        setTimeout(initMarketIntelligence, 100);
+      }
+      if (item.dataset.view === 'portfolio') {
+        initPortfolio();
+      }
+    });
   });
+
+  // Export init for splash screen finish
+  window.SENTINEL_INIT = () => {
+    switchView('overview');
+    initPortfolio(); // Pre-fetch if logged in
+  };
 
   try {
     document.getElementById('status-text').innerText = 'Fetching Intelligence...';
     
-    // Fetch data in parallel
-    const [compRes, riskRes, topRes, secRes] = await Promise.all([
+    const [compRes, topRes, secRes] = await Promise.all([
       fetch('/api/companies'),
-      fetch('/api/risk-scores'),
       fetch('/api/top-critical?n=5'),
       fetch('/api/sector-summary')
     ]);
 
     globalData.companies = (await compRes.json()).companies;
-    riskData = (await riskRes.json()).risk_scores;
     globalData.topCritical = (await topRes.json()).nodes;
     globalData.sectorSummary = (await secRes.json()).sectors;
 
     document.getElementById('status-text').innerText = 'Secure Link Established';
     document.querySelector('.status-dot').style.background = 'var(--low)';
 
-    // Populate Overview
     populateOverview();
-    
-    // Populate Risk Table
-    renderRiskTable(riskData);
-    
-    // Populate Threat Sim Select
     populateSimSelect();
-    
-    // Risk Filter
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        const tier = e.target.dataset.tier;
-        renderRiskTable(tier === 'all' ? riskData : riskData.filter(r => r.risk_tier === tier));
-      });
-    });
 
   } catch (err) {
     console.error(err);
@@ -72,26 +80,160 @@ async function init() {
   }
 }
 
+// --- PORTFOLIO LOGIC ---
+async function initPortfolio() {
+  const container = document.getElementById('view-portfolio');
+  const authStatus = document.getElementById('portfolio-auth-status');
+  
+  if (isGuest()) {
+    authStatus.innerHTML = '<span class="pulse-dot" style="background:#f59e0b; box-shadow:0 0 10px #f59e0b"></span> GUEST ACCESS (ADVISORY RESTRICTED)';
+    authStatus.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+    authStatus.style.color = '#f59e0b';
+    document.getElementById('holdings-body').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:rgba(255,255,255,0.3)">Identity Verification Required for Personal Advisor Features</td></tr>';
+    document.getElementById('btn-add-to-port').disabled = true;
+    document.getElementById('btn-run-advisor').disabled = true;
+    return;
+  }
+
+  fetchHoldings();
+}
+
+async function fetchHoldings() {
+  try {
+    const res = await fetch('/api/portfolio', { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error('Auth failed');
+    const items = await res.json();
+    renderHoldings(items);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function renderHoldings(items) {
+  const body = document.getElementById('holdings-body');
+  if (!items || items.length === 0) {
+    body.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:rgba(255,255,255,0.2)">No strategic assets registered.</td></tr>';
+    return;
+  }
+
+  let html = '';
+  for (const item of items) {
+    // Fetch live price for valuation
+    let price = '---';
+    let val = '---';
+    try {
+      const pRes = await fetch(`/api/live-price?ticker=${item.ticker}`);
+      const pData = await pRes.json();
+      if (pData.live_price) {
+        price = '₹' + pData.live_price;
+        val = '₹' + (pData.live_price * item.quantity).toLocaleString();
+      }
+    } catch(e) {}
+
+    html += `
+      <tr>
+        <td><strong>${item.ticker}</strong></td>
+        <td>${item.quantity}</td>
+        <td>${price}</td>
+        <td class="valuation-cell">${val}</td>
+        <td><button class="delete-btn" onclick="removeFromPortfolio('${item.ticker}')">🗑</button></td>
+      </tr>
+    `;
+  }
+  body.innerHTML = html;
+}
+
+window.removeFromPortfolio = async (ticker) => {
+  if (!confirm(`Confirm de-registration of ${ticker}?`)) return;
+  try {
+    await fetch(`/api/portfolio/${ticker}`, { method: 'DELETE', headers: getAuthHeaders() });
+    fetchHoldings();
+  } catch (e) { alert(e); }
+};
+
+document.getElementById('btn-add-to-port')?.addEventListener('click', async () => {
+  const ticker = document.getElementById('port-ticker').value.toUpperCase();
+  const qty = parseFloat(document.getElementById('port-qty').value);
+  if (!ticker || isNaN(qty)) { alert('Invalid asset markers'); return; }
+
+  try {
+    const res = await fetch('/api/portfolio', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ ticker: ticker, quantity: qty })
+    });
+    if (res.ok) {
+      document.getElementById('port-ticker').value = '';
+      document.getElementById('port-qty').value = '';
+      fetchHoldings();
+    }
+  } catch (e) { alert(e); }
+});
+
+document.getElementById('btn-refresh-port')?.addEventListener('click', fetchHoldings);
+
+document.getElementById('btn-run-advisor')?.addEventListener('click', async () => {
+  const container = document.getElementById('advisor-result-container');
+  const text = document.getElementById('advisor-text');
+  const btn = document.getElementById('btn-run-advisor');
+
+  container.classList.remove('hidden');
+  document.querySelector('.advisor-loading').style.display = 'flex';
+  text.innerHTML = '';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/personal/analyze', { method: 'POST', headers: getAuthHeaders() });
+    const data = await res.json();
+    document.querySelector('.advisor-loading').style.display = 'none';
+    
+    // Typewriter effect for advisor
+    let i = 0;
+    const fullText = data.response;
+    function tick() {
+      if (i < fullText.length) {
+        text.innerHTML = marked.parse(fullText.substring(0, i + 3));
+        i += 3;
+        setTimeout(tick, 5);
+      } else {
+        btn.disabled = false;
+      }
+    }
+    tick();
+
+  } catch (e) {
+    alert(e);
+    btn.disabled = false;
+  }
+});
+
 function switchView(viewId) {
   navItems.forEach(n => n.classList.remove('active'));
-  document.querySelector(`.nav-item[data-view="${viewId}"]`).classList.add('active');
+  const navItem = document.querySelector(`.nav-item[data-view="${viewId}"]`);
+  if (navItem) navItem.classList.add('active');
   
   views.forEach(v => v.classList.remove('active'));
-  document.getElementById(`view-${viewId}`).classList.add('active');
+  const targetView = document.getElementById(`view-${viewId}`);
+  if (targetView) targetView.classList.add('active');
   
   const config = viewConfigs[viewId];
-  viewTitle.innerText = config.title;
-  viewSub.innerText = config.sub;
+  if (config) {
+    viewTitle.innerText = config.title;
+    viewSub.innerText = config.sub;
+  }
 
-  // Trigger resize or specific initializers
   if (viewId === 'network' && window.initGraph) {
     window.initGraph();
+  }
+  if (viewId === 'risk') {
+    loadMLIntelligence();
   }
 }
 
 function updateTime() {
   const now = new Date();
-  document.getElementById('timestamp').innerText = now.toISOString().replace('T', ' ').substring(0, 19) + ' IST';
+  const ts = document.getElementById('timestamp');
+  if (ts) ts.innerText = now.toISOString().replace('T', ' ').substring(0, 19) + ' IST';
 }
 
 function getSectorColor(sector) {
@@ -105,70 +247,78 @@ function getSectorColor(sector) {
 }
 
 function populateOverview() {
-  document.getElementById('stat-total').innerText = globalData.companies.length;
+  const statTotal = document.getElementById('stat-total');
+  if (statTotal) statTotal.innerText = globalData.companies.length;
   
-  const criticalCount = riskData.filter(r => r.risk_tier === 'CRITICAL').length;
-  document.getElementById('stat-critical').innerText = criticalCount;
+  const statCritical = document.getElementById('stat-critical');
+  if (statCritical) statCritical.innerText = globalData.topCritical.length;
   
   let totalEdges = 0;
   globalData.companies.forEach(c => totalEdges += (c.dependencies ? c.dependencies.length : 0));
-  document.getElementById('stat-edges').innerText = totalEdges;
+  const statEdges = document.getElementById('stat-edges');
+  if (statEdges) statEdges.innerText = totalEdges;
 
   let gdpLoss = 0;
   globalData.topCritical.forEach(n => {
     n.threats.forEach(t => gdpLoss += (t.loss_estimate_bn || 0));
   });
-  document.getElementById('stat-gdp').innerText = '$' + gdpLoss.toFixed(1) + 'B';
+  const statGdp = document.getElementById('stat-gdp');
+  if (statGdp) statGdp.innerText = '$' + gdpLoss.toFixed(1) + 'B';
 
-  // Top Critical List
-  const tcHtml = globalData.topCritical.map((n, i) => `
-    <div class="node-row">
-      <div class="node-rank">0${i+1}</div>
-      <div class="node-dot" style="background:${getSectorColor(n.sector)}"></div>
-      <div class="node-info">
-        <div class="node-name">${n.name} <span style="font-size:10px; color:var(--text-muted)">${n.ticker}</span></div>
-        <div class="node-sub">${n.role}</div>
-      </div>
-      <div class="vuln-bar-wrap">
-        <div class="vuln-bar-bg">
-          <div class="vuln-bar" style="width:${n.vulnerability_score}%; background:var(--critical)"></div>
+  const tcList = document.getElementById('top-critical-list');
+  if (tcList) {
+    const tcHtml = globalData.topCritical.map((n, i) => `
+      <div class="node-row">
+        <div class="node-rank">0${i+1}</div>
+        <div class="node-dot" style="background:${getSectorColor(n.sector)}"></div>
+        <div class="node-info">
+          <div class="node-name">${n.name} <span style="font-size:10px; color:var(--text-muted)">${n.ticker}</span></div>
+          <div class="node-sub">${n.role}</div>
         </div>
-        <div class="vuln-score">${n.vulnerability_score}/100</div>
-      </div>
-    </div>
-  `).join('');
-  document.getElementById('top-critical-list').innerHTML = tcHtml;
-
-  // Sector Breakdown
-  const maxVuln = Math.max(...globalData.sectorSummary.map(s => s.total_potential_loss_bn));
-  const sbHtml = globalData.sectorSummary.map(s => {
-    const width = (s.total_potential_loss_bn / maxVuln) * 100;
-    return `
-      <div class="sector-row">
-        <div class="sector-top">
-          <div class="sector-name" style="color:${getSectorColor(s.sector)}">${s.sector.toUpperCase()}</div>
-          <div class="sector-meta">$${s.total_potential_loss_bn.toFixed(1)}B exposure • ${s.company_count} assets</div>
-        </div>
-        <div class="sector-bar-bg">
-          <div class="sector-bar" style="width:${width}%; background:${getSectorColor(s.sector)}"></div>
+        <div class="vuln-bar-wrap">
+          <div class="vuln-bar-bg">
+            <div class="vuln-bar" style="width:${n.vulnerability_score}%; background:var(--critical)"></div>
+          </div>
+          <div class="vuln-score">${n.vulnerability_score}/100</div>
         </div>
       </div>
-    `;
-  }).join('');
-  document.getElementById('sector-breakdown').innerHTML = sbHtml;
+    `).join('');
+    tcList.innerHTML = tcHtml;
+  }
 
-  // Actors list (mocked from db structure)
+  const sbList = document.getElementById('sector-breakdown');
+  if (sbList) {
+    const maxVuln = Math.max(...globalData.sectorSummary.map(s => s.total_potential_loss_bn));
+    const sbHtml = globalData.sectorSummary.map(s => {
+      const width = (s.total_potential_loss_bn / maxVuln) * 100;
+      return `
+        <div class="sector-row">
+          <div class="sector-top">
+            <div class="sector-name" style="color:${getSectorColor(s.sector)}">${s.sector.toUpperCase()}</div>
+            <div class="sector-meta">$${s.total_potential_loss_bn.toFixed(1)}B exposure • ${s.company_count} assets</div>
+          </div>
+          <div class="sector-bar-bg">
+            <div class="sector-bar" style="width:${width}%; background:${getSectorColor(s.sector)}"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    sbList.innerHTML = sbHtml;
+  }
+
   loadThreatActors();
 }
 
 async function loadThreatActors() {
+  const talist = document.getElementById('threat-actors-list');
+  if (!talist) return;
   try {
     const res = await fetch('/api/companies');
     const data = await res.json();
     const actors = data.threat_actors || [];
     
     if (actors.length === 0) {
-      document.getElementById('threat-actors-list').innerHTML = '<div class="loading">No actor data</div>';
+      talist.innerHTML = '<div class="loading">No actor data</div>';
       return;
     }
 
@@ -184,38 +334,124 @@ async function loadThreatActors() {
         </div>
       </div>
     `).join('');
-    document.getElementById('threat-actors-list').innerHTML = html;
+    talist.innerHTML = html;
   } catch(e) { console.error(e); }
 }
 
-function renderRiskTable(data) {
-  const tbody = document.getElementById('risk-table-body');
-  if (data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="loading">No records found.</td></tr>';
-    return;
-  }
+// --- ML INTELLIGENCE ---
+let mlForecastLoaded = false;
+async function loadMLIntelligence() {
+  if (mlForecastLoaded) return;
+  mlForecastLoaded = true;
 
-  tbody.innerHTML = data.map(r => `
-    <tr>
-      <td><strong>${r.name}</strong> <br><span style="font-size:10px;color:var(--text-muted)">${r.ticker}</span></td>
-      <td style="color:${getSectorColor(r.sector)};text-transform:capitalize">${r.sector}</td>
-      <td class="risk-score-cell">${r.risk_score.toFixed(1)}</td>
-      <td><span class="risk-badge ${r.risk_tier}">${r.risk_tier}</span></td>
-      <td>${r.criticality}/10</td>
-      <td>${r.betweenness.toFixed(3)}</td>
-      <td>$${r.revenue_bn}B</td>
-      <td>${r.employees.toLocaleString()}</td>
-    </tr>
-  `).join('');
+  try {
+    const [forecastRes, clustersRes] = await Promise.all([
+      fetch('/api/ml/forecast'),
+      fetch('/api/ml/clusters')
+    ]);
+    const forecastData = await forecastRes.json();
+    const clusterData = await clustersRes.json();
+    
+    renderForecastChart(forecastData);
+    renderClusterMap(clusterData.clusters);
+  } catch(e) { console.error("ML Error:", e); }
 }
 
-// SIMULATOR
+function renderForecastChart(data) {
+  const el = document.getElementById('forecastChart');
+  if (!el) return;
+  const ctx = el.getContext('2d');
+  
+  const datasets = [
+    { label: 'Defense', data: data.series.defense, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.4, fill: true },
+    { label: 'Energy', data: data.series.energy, borderColor: '#eab308', backgroundColor: 'rgba(234, 179, 8, 0.1)', tension: 0.4, fill: true },
+    { label: 'Finance', data: data.series.finance, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.4, fill: true },
+    { label: 'Logistics', data: data.series.logistics, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', tension: 0.4, fill: true }
+  ];
+
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels: data.dates, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9ca3af' } }
+      },
+      scales: {
+        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Threat Probability %', color: '#9ca3af' }, grid: { color: '#1f2937' }, ticks: { color: '#9ca3af'} },
+        x: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af', maxTicksLimit: 10 } }
+      }
+    }
+  });
+}
+
+function renderClusterMap(nodes) {
+  const container = document.getElementById('cluster-map');
+  if (!container) return;
+  container.innerHTML = ''; 
+  
+  if (!nodes || nodes.length === 0) return;
+
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  const svg = d3.select('#cluster-map').append('svg').attr('width', '100%').attr('height', '100%');
+  const xExtent = d3.extent(nodes, d => d.plot_x || 0);
+  const yExtent = d3.extent(nodes, d => d.plot_y || 0);
+  const padding = 40;
+  const xScale = d3.scaleLinear().domain([xExtent[0]-1, xExtent[1]+1]).range([padding, w-padding]);
+  const yScale = d3.scaleLinear().domain([yExtent[0]-1, yExtent[1]+1]).range([h-padding, padding]);
+  
+  svg.append('g').attr('class', 'grid')
+     .selectAll('line').data(xScale.ticks(10)).enter().append('line')
+     .attr('x1', d=>xScale(d)).attr('x2', d=>xScale(d)).attr('y1', padding).attr('y2', h-padding)
+     .attr('stroke', '#1f2937').attr('stroke-width', 1).attr('stroke-dasharray', '2,2');
+     
+  svg.append('g').attr('class', 'grid')
+     .selectAll('line').data(yScale.ticks(10)).enter().append('line')
+     .attr('y1', d=>yScale(d)).attr('y2', d=>yScale(d)).attr('x1', padding).attr('x2', w-padding)
+     .attr('stroke', '#1f2937').attr('stroke-width', 1).attr('stroke-dasharray', '2,2');
+
+  let tooltip = d3.select('body').select('.cluster-tooltip');
+  if (tooltip.empty()) {
+      tooltip = d3.select('body').append('div').attr('class', 'cluster-tooltip');
+  }
+
+  const nodeGroups = svg.selectAll('.cnode').data(nodes).enter().append('g')
+     .attr('transform', d => `translate(${xScale(d.plot_x || 0)}, ${yScale(d.plot_y || 0)})`)
+     .attr('class', 'cnode');
+     
+  nodeGroups.append('circle')
+     .attr('r', 6)
+     .attr('fill', d => getSectorColor(d.sector))
+     .attr('stroke', '#0b0f19').attr('stroke-width', 1.5)
+     .on('mouseover', function(event, d) {
+        d3.select(this).attr('stroke', '#fff').attr('stroke-width', 2).attr('r', 8);
+        tooltip.style('opacity', 1)
+               .html(`<strong>${d.name} (${d.ticker})</strong><br><span style="color:${getSectorColor(d.sector)};text-transform:capitalize">${d.sector}</span><br>Vuln Score: ${d.vulnerability_score}<br>Cluster: ${d.cluster_name}`);
+     })
+     .on('mousemove', function(event) {
+        tooltip.style('left', (event.pageX + 15) + 'px')
+               .style('top', (event.pageY - 15) + 'px');
+     })
+     .on('mouseout', function(event, d) {
+        d3.select(this).attr('stroke', '#0b0f19').attr('stroke-width', 1.5).attr('r', 6);
+        tooltip.style('opacity', 0);
+     });
+     
+  const clusterNames = [...new Set(nodes.map(n => n.cluster_name))].filter(Boolean);
+  const legend = svg.append('g').attr('transform', 'translate(10, 10)');
+  clusterNames.forEach((name, i) => {
+     legend.append('text').text(`Cluster ${i+1}: ${name}`).attr('y', i*16).attr('font-size', '11px').attr('fill', 'var(--accent)');
+  });
+}
+
+// --- SCENARIO ENGINE ---
 function populateSimSelect() {
   const select = document.getElementById('sim-target');
+  if (!select) return;
   let opts = '<option value="">— Select company —</option>';
-  
   if(globalData.companies) {
-    // Sort alpha
     const sorted = [...globalData.companies].sort((a,b) => a.name.localeCompare(b.name));
     sorted.forEach(c => {
       opts += `<option value="${c.ticker}">${c.name} (${c.ticker})</option>`;
@@ -224,122 +460,57 @@ function populateSimSelect() {
   select.innerHTML = opts;
 }
 
-document.getElementById('run-sim-btn').addEventListener('click', async () => {
+document.getElementById('run-sim-btn')?.addEventListener('click', async () => {
   const ticker = document.getElementById('sim-target').value;
-  const depth = document.getElementById('sim-depth').value;
-  if (!ticker) return;
+  const vector = document.getElementById('sim-vector').value || "Hostile Kinetic and Cyber Degradation";
+  if (!ticker) { alert('Select a company first.'); return; }
 
   const btn = document.getElementById('run-sim-btn');
   btn.disabled = true;
-  btn.innerText = 'SIMULATING...';
+  btn.innerText = 'GENERATING SCENARIO...';
   document.getElementById('sim-results').classList.add('hidden');
 
   try {
-    const res = await fetch(`/api/threat-sim/${ticker}?depth=${depth}`);
+    const res = await fetch('/api/ml/scenario', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticker: ticker, vector: vector })
+    });
     const data = await res.json();
-    
     if (data.error) throw new Error(data.error);
-    renderSimResults(data);
-    
-  } catch (err) {
-    console.error(err);
-    alert('Simulation failed: ' + err.message);
-  } finally {
+    renderScenarioResults(data);
+  } catch (err) { alert('Scenario failed: ' + err.message); } finally {
     btn.disabled = false;
-    btn.innerText = 'RUN ATTACK SIMULATION';
+    btn.innerText = 'GENERATE SCENARIO';
   }
 });
 
-function renderSimResults(data) {
+function renderScenarioResults(data) {
   document.getElementById('sim-results').classList.remove('hidden');
-  
-  // Summary Cards
   document.getElementById('sim-summary-cards').innerHTML = `
     <div class="stat-card critical">
-      <div class="stat-label">Companies Affected</div>
-      <div class="stat-value">${data.affected_count}</div>
-      <div class="stat-sub">Across cascade depth</div>
+      <div class="stat-label">Primary Target</div>
+      <div class="stat-value" style="font-size:1.2rem">${data.target}</div>
+      <div class="stat-sub">${data.vector}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Est. Financial Loss</div>
-      <div class="stat-value">$${data.total_estimated_loss_bn}B</div>
-      <div class="stat-sub">Direct + Indirect</div>
+      <div class="stat-label">Downstream Impact</div>
+      <div class="stat-value">${data.downstream_impact_count}</div>
+      <div class="stat-sub">Crippled assets</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">GDP Impact</div>
-      <div class="stat-value">${data.gdp_impact_percent}%</div>
-      <div class="stat-sub">Of national GDP</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Recovery Time</div>
-      <div class="stat-value">${data.estimated_recovery_days}d</div>
-      <div class="stat-sub">Estimated</div>
+      <div class="stat-label">Simulated Chain Loss</div>
+      <div class="stat-value">$${data.simulated_loss_bn}B</div>
+      <div class="stat-sub">Total Estimated Exposure</div>
     </div>
   `;
-
-  // Target Info
-  const t = data.target;
-  let tHtml = `
-    <div class="detail-name">${t.name}</div>
-    <div class="detail-ticker" style="margin-bottom:12px">${t.ticker} • Sector: <span style="color:${getSectorColor(t.sector)}">${t.sector.toUpperCase()}</span></div>
-    
-    <div class="detail-section-title">Direct Threats</div>
-  `;
-  
-  if (t.threats) {
-    t.threats.forEach(th => {
-      tHtml += `
-        <div class="threat-item">
-          <div class="threat-actor">${th.actor}</div>
-          <div class="threat-method">${th.method}</div>
-          <div class="threat-loss">Est. Loss: $${th.loss_estimate_bn}B</div>
-        </div>
-      `;
-    });
-  }
-  document.getElementById('sim-target-info').innerHTML = tHtml;
-
-  // Cascade
-  let cHtml = '';
-  if (data.cascade && data.cascade.length > 0) {
-    data.cascade.forEach(c => {
-      cHtml += `
-        <div class="cascade-item">
-          <div class="cascade-level">Lvl ${c.level}</div>
-          <div class="node-dot" style="background:${getSectorColor(c.sector)}; width:6px;height:6px;"></div>
-          <div style="flex:1; font-weight:600">${c.name}</div>
-          <div class="cascade-impact">Impact: ${(c.impact_factor*100).toFixed(0)}%</div>
-          <div class="cascade-loss">-$${c.estimated_loss_bn}B</div>
-        </div>
-      `;
-    });
-  } else {
-    cHtml = '<div class="loading">No cascading dependencies at this depth.</div>';
-  }
-  document.getElementById('sim-cascade-list').innerHTML = cHtml;
-
-  // Threat Actors
-  let aHtml = '';
-  if (data.threat_actors && data.threat_actors.length > 0) {
-    data.threat_actors.forEach(a => {
-      aHtml += `
-        <div class="actor-card">
-          <div class="actor-info">
-            <div class="actor-name">${a.name}</div>
-            <div class="actor-methods" style="margin-top:4px">Known Methods: ${a.methods.join(', ')}</div>
-          </div>
-        </div>
-      `;
-    });
-  }
-  document.getElementById('sim-threat-actors').innerHTML = aHtml;
+  document.getElementById('sim-intelligence').innerHTML = marked.parse(data.intelligence_report);
 }
 
-// Global functions for graph to call
 window.triggerSimulation = (ticker) => {
   switchView('threat-sim');
-  document.getElementById('sim-target').value = ticker;
-  document.getElementById('run-sim-btn').click();
+  const target = document.getElementById('sim-target');
+  if (target) target.value = ticker;
 };
 
 init();

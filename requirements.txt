@@ -6,3 +6,11 @@ numpy
 pandas
 groq
 python-dotenv
+yfinance
+google-genai
+sqlalchemy
+passlib[bcrypt]
+python-jose[cryptography]
+google-auth
+google-auth-oauthlib
+requests

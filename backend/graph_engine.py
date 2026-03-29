@@ -53,6 +53,8 @@ def get_graph_metrics():
             "vulnerability_score": vuln_score,
             "revenue_bn": c.get("revenue_bn", 0),
             "employees": c.get("employees", 0),
+            "valuation_t": c.get("valuation_t"),
+            "leader": c.get("leader"),
         })
 
     edges = [{"source": u, "target": v} for u, v in G.edges()]

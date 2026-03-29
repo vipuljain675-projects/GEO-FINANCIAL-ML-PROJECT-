@@ -6,16 +6,116 @@
   <title>Strategic Shield — India's Critical Infrastructure Protection</title>
   <meta name="description" content="AI/ML platform analyzing India's 50 most critical companies — dependencies, threat vectors, and protection strategies." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/market.css" />
+  <style>
+    .event-pills { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px 0; }
+    .event-pill { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; border: 1px solid; letter-spacing: 0.3px; cursor: default; }
+  </style>
 </head>
-<body>
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <div class="brand-icon">⬡</div>
-      <div>
+<body class="splash-active">
+
+  <!-- ================= PHASE 1: SPLASH SCREENS ================= -->
+  
+  <!-- Audio Context -->
+  <audio id="bg-music" loop>
+    <source src="/static/audio/ambient.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Splash 1: The Gateway -->
+  <div id="splash-1" class="splash-screen active">
+    <div class="splash-bg" style="background-image: url('/static/img/secure_uplink.png');"></div>
+    <div class="splash-overlay"></div>
+    <div class="scanlines"></div>
+    <div class="splash-content s1-content">
+      <div class="s1-tag">TOP SECRET // EYES ONLY</div>
+      <div class="s1-logo">⬡</div>
+      <div class="cyber-title">STRATEGIC SHIELD</div>
+      <div class="s1-sub">INDIA CRITICAL INFRASTRUCTURE INTELLIGENCE SYSTEM</div>
+      <div class="s1-divider"></div>
+      <button id="btn-enter" class="cyber-btn">▸ INITIALIZE SECURE UPLINK</button>
+      <div class="s1-bottom">CLASSIFIED / AUTHORIZED PERSONNEL ONLY</div>
+    </div>
+  </div>
+
+  <!-- Splash 2: Detailed Briefing (Akhand Bharat) -->
+  <div id="splash-2" class="splash-screen">
+    <div class="splash-bg" style="background-image: url('/static/img/akhand_bharat.png');"></div>
+    <div class="splash-overlay heavy"></div>
+    <div class="scanlines"></div>
+    <div class="splash-content s2-content">
+      <div class="s2-tag">INTELLIGENCE BRIEFING — <span id="brief-date"></span></div>
+      <h1 class="glitch-text" data-text="AKHAND BHARAT INTELLIGENCE GRID">AKHAND BHARAT INTELLIGENCE GRID</h1>
+      <div class="s2-divider"></div>
+      <p class="typewriter" id="caption-1"></p>
+      <p class="typewriter" id="caption-2" style="display:none;"></p>
+      <p class="typewriter" id="caption-3" style="display:none;"></p>
+      <div class="s2-stats hidden" id="s2-stats">
+        <div class="s2-stat"><span class="s2-stat-val">50</span><span class="s2-stat-label">Critical Entities</span></div>
+        <div class="s2-stat"><span class="s2-stat-val">5</span><span class="s2-stat-label">Threat Vectors</span></div>
+        <div class="s2-stat"><span class="s2-stat-val">LIVE</span><span class="s2-stat-label">NSE Data Feed</span></div>
+      </div>
+      <button id="btn-to-auth" class="cyber-btn proceed-btn hidden">▸ INITIALIZE IDENTITY VERIFICATION</button>
+    </div>
+  </div>
+
+  <!-- Splash 3: Identity Verification (Auth) -->
+  <div id="splash-3" class="splash-screen">
+    <div class="splash-bg" style="background-color: #05080a;"></div>
+    <div class="splash-overlay auth-overlay"></div>
+    <div class="scanlines"></div>
+    <div class="splash-content auth-content">
+      <div class="auth-box">
+        <div class="auth-header">
+          <div class="auth-icon">🔒</div>
+          <h2>IDENTITY VERIFICATION</h2>
+          <p>Access requires active strategic clearance</p>
+        </div>
+        
+        <div class="auth-form" id="auth-form-container">
+          <div class="input-group">
+            <label>STRATEGIC EMAIL</label>
+            <input type="email" id="auth-email" placeholder="agent@sentinel.gov">
+          </div>
+          <div class="input-group" id="name-group" style="display:none;">
+            <label>FULL NAME</label>
+            <input type="text" id="auth-name" placeholder="John Doe">
+          </div>
+          <div class="input-group">
+            <label>SECURITY PASSKEY</label>
+            <input type="password" id="auth-pass" placeholder="••••••••">
+          </div>
+          
+          <div class="auth-actions">
+            <button id="btn-login" class="cyber-btn primary">▸ VERIFY IDENTITY</button>
+            <button id="btn-toggle-signup" class="text-link">Request New Clearance</button>
+          </div>
+        </div>
+        
+        <div class="auth-divider">
+          <span>OR</span>
+        </div>
+        
+        <button id="btn-bypass" class="cyber-btn secondary">▸ BYPASS (ANONYMOUS GUEST ACCESS)</button>
+        
+        <div class="auth-footer">
+          Unauthorized access attempt will be logged and traced.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN APPLICATION ================= -->
+  <div id="main-app" class="hidden">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">⬡</div>
+        <div>
         <div class="brand-name">STRATEGIC SHIELD</div>
         <div class="brand-sub">India Critical Infrastructure</div>
       </div>
@@ -29,13 +129,17 @@
         <span class="nav-icon">◎</span> Network Graph
       </button>
       <button class="nav-item" data-view="threat-sim">
-        <span class="nav-icon">◉</span> Threat Simulator
+        <span class="nav-icon">◉</span> Scenario Engine
       </button>
       <button class="nav-item" data-view="risk">
-        <span class="nav-icon">▣</span> Risk Matrix
+        <span class="nav-icon">▣</span> Market Intelligence
       </button>
       <button class="nav-item" data-view="analyst">
         <span class="nav-icon">◆</span> AI Analyst
+      </button>
+      <div class="nav-divider"></div>
+      <button class="nav-item" data-view="portfolio">
+        <span class="nav-icon">📁</span> Personal Advisor
       </button>
     </nav>
 
@@ -161,7 +265,7 @@
       </div>
     </div>
 
-    <!-- THREAT SIMULATOR VIEW -->
+    <!-- SCENARIO ENGINE VIEW -->
     <div id="view-threat-sim" class="view">
       <div class="sim-controls">
         <div class="control-group">
@@ -170,64 +274,117 @@
             <option value="">— Select company —</option>
           </select>
         </div>
-        <div class="control-group">
-          <label>Cascade Depth</label>
-          <select id="sim-depth">
-            <option value="2">2 Levels</option>
-            <option value="3" selected>3 Levels</option>
-            <option value="4">4 Levels</option>
-          </select>
+        <div class="control-group" style="width: 300px;">
+          <label>Custom Attack Vector</label>
+          <input type="text" id="sim-vector" placeholder="e.g. Hindenburg Short-Selling, Ransomware" class="chat-input" style="width: 100%; border-radius: 5px; height: 32px;" />
         </div>
-        <button class="btn-primary" id="run-sim-btn">RUN ATTACK SIMULATION</button>
+        <button class="btn-primary" id="run-sim-btn">GENERATE SCENARIO</button>
       </div>
       <div id="sim-results" class="sim-results hidden">
-        <div id="sim-summary-cards" class="stat-grid"></div>
-        <div class="two-col" style="margin-top:20px">
-          <div class="panel">
-            <div class="panel-header"><span class="panel-title">TARGET ANALYSIS</span></div>
-            <div class="panel-body" id="sim-target-info"></div>
+        <div id="sim-summary-cards" class="stat-grid" style="grid-template-columns: repeat(3, 1fr);"></div>
+        <div id="sim-panel" class="panel" style="margin-top:20px; border-color: var(--accent); overflow: visible;">
+          <div class="panel-header" style="background: rgba(99, 102, 241, 0.1);">
+            <span class="panel-title" style="color: var(--accent);">AI RED/BLUE TEAM INTELLIGENCE BRIEF</span>
+            <span class="panel-tag" style="background: var(--accent); color: white;">SENTINEL</span>
           </div>
-          <div class="panel">
-            <div class="panel-header"><span class="panel-title">CASCADE IMPACT</span><span class="panel-tag">Affected Companies</span></div>
-            <div class="panel-body" id="sim-cascade-list"></div>
+          <div class="panel-body" id="sim-intelligence" style="font-size: 13px; line-height: 1.8; color: var(--text-dim); padding: 20px; max-height: none !important; overflow: visible !important;">
           </div>
-        </div>
-        <div class="panel" style="margin-top:20px">
-          <div class="panel-header"><span class="panel-title">THREAT ACTORS</span></div>
-          <div class="panel-body" id="sim-threat-actors"></div>
         </div>
       </div>
     </div>
 
-    <!-- RISK MATRIX VIEW -->
-    <div id="view-risk" class="view">
-      <div class="risk-filters">
-        <button class="filter-btn active" data-tier="all">All</button>
-        <button class="filter-btn" data-tier="CRITICAL">Critical</button>
-        <button class="filter-btn" data-tier="HIGH">High</button>
-        <button class="filter-btn" data-tier="MEDIUM">Medium</button>
-        <button class="filter-btn" data-tier="LOW">Low</button>
+    <!-- MARKET INTELLIGENCE VIEW -->
+    <div id="view-risk" class="view market-view">
+      <!-- Top Controls Bar -->
+      <div class="market-controls">
+        <div class="control-group">
+          <label>SELECT COMPANY</label>
+          <select id="market-company-select">
+            <option value="">— Loading companies —</option>
+          </select>
+        </div>
+        <div class="market-kpis" id="market-kpis">
+          <div class="kpi-item">
+            <div class="kpi-label">CURRENT PRICE</div>
+            <div class="kpi-value" id="kpi-price">—</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-label">ALL TIME HIGH</div>
+            <div class="kpi-value" id="kpi-ath" style="color: var(--low)">—</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-label">ALL TIME LOW</div>
+            <div class="kpi-value" id="kpi-atl" style="color: var(--critical)">—</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-label">SINCE 2010</div>
+            <div class="kpi-value" id="kpi-growth">—</div>
+          </div>
+        </div>
       </div>
-      <div id="risk-table-container">
-        <table class="risk-table" id="risk-table">
-          <thead>
-            <tr>
-              <th>Company</th>
-              <th>Sector</th>
-              <th>Risk Score</th>
-              <th>Tier</th>
-              <th>Criticality</th>
-              <th>Betweenness</th>
-              <th>Revenue $bn</th>
-              <th>Employees</th>
-            </tr>
-          </thead>
-          <tbody id="risk-table-body">
-            <tr><td colspan="8" class="loading">Loading...</td></tr>
-          </tbody>
-        </table>
+
+      <!-- Main Layout: Chart (left) + Signals (right) -->
+      <div class="market-layout">
+        <!-- Chart Panel -->
+        <div class="panel market-chart-panel">
+          <div class="panel-header">
+            <span class="panel-title" id="chart-title">SELECT A COMPANY TO LOAD REAL MARKET DATA</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span class="chart-legend-item"><span style="background:#6366f1;width:12px;height:2px;display:inline-block;border-radius:1px"></span> Historical</span>
+              <span class="chart-legend-item"><span style="background:#f59e0b;width:12px;height:2px;display:inline-block;border-radius:1px;border-top:2px dashed #f59e0b"></span> ML Forecast</span>
+              <span class="panel-tag">yfinance · Polynomial Regression</span>
+            </div>
+          </div>
+          <div class="market-chart-body">
+            <div id="market-loading" class="market-placeholder">
+              <div class="placeholder-icon">📈</div>
+              <div>Select a company to load its full price history from 2010</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Real NSE data via Yahoo Finance · ML 45-day forecast · Event annotations</div>
+            </div>
+            <canvas id="marketChart" style="display:none; width:100%; height:100%;"></canvas>
+            <!-- Event annotation pills (rendered dynamically) -->
+            <div id="event-pills" class="event-pills"></div>
+          </div>
+        </div>
+
+        <!-- Signals Panel -->
+        <div class="signals-panel">
+          <!-- Twitter Sentiment -->
+          <div class="panel signal-card">
+            <div class="panel-header">
+              <span class="panel-title">📰 NEWS SENTIMENT</span>
+              <span class="panel-tag" id="twitter-tag">Live · NewsAPI</span>
+            </div>
+            <div class="panel-body" id="twitter-panel">
+              <div class="loading">Select company to load signals</div>
+            </div>
+          </div>
+
+          <!-- GDELT Macro Signal -->
+          <div class="panel signal-card">
+            <div class="panel-header">
+              <span class="panel-title">GDELT MACRO SIGNAL</span>
+              <span class="panel-tag">Geopolitical · 15min</span>
+            </div>
+            <div class="panel-body" id="gdelt-panel">
+              <div class="loading">Select company to load signals</div>
+            </div>
+          </div>
+
+          <!-- Key Events -->
+          <div class="panel signal-card">
+            <div class="panel-header">
+              <span class="panel-title">KEY MARKET EVENTS</span>
+              <span class="panel-tag">Annotated on Chart</span>
+            </div>
+            <div class="panel-body" id="events-panel">
+              <div class="loading">Select company to load events</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
 
     <!-- AI ANALYST VIEW -->
     <div id="view-analyst" class="view">
@@ -268,11 +425,270 @@
           <button class="qq-btn" data-q="How does loss of CDSL affect India's economy?">CDSL Impact</button>
         </div>
       </div>
+    <!-- PERSONAL PORTFOLIO VIEW -->
+    <div id="view-portfolio" class="view">
+      <div class="portfolio-layout">
+        <div class="portfolio-main">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">PERSONAL WEALTH PROTECTION</h1>
+              <p class="view-subtitle">Individualized Intelligence & Asset Risk Analysis</p>
+            </div>
+            <div class="auth-status-chip" id="portfolio-auth-status">
+              <span class="pulse-dot"></span> SECURE UPLINK ACTIVE
+            </div>
+          </div>
+
+          <div class="portfolio-dashboard">
+            <!-- Add Asset Form -->
+            <div class="portfolio-card add-asset-card">
+              <h3>REGISTER STRATEGIC ASSET</h3>
+              <div class="add-asset-form">
+                <div class="input-row">
+                  <div class="input-group">
+                    <label>EQUITY TICKER (NSE)</label>
+                    <input type="text" id="port-ticker" placeholder="e.g. BDL.NS">
+                  </div>
+                  <div class="input-group">
+                    <label>QUANTITY (UNITS)</label>
+                    <input type="number" id="port-qty" placeholder="0.00">
+                  </div>
+                </div>
+                <button id="btn-add-to-port" class="cyber-btn primary-small">▸ ADD TO PORTFOLIO</button>
+              </div>
+            </div>
+
+            <!-- Holdings Table -->
+            <div class="portfolio-card holdings-card">
+              <div class="card-header">
+                <h3>CURRENT STRATEGIC HOLDINGS</h3>
+                <button id="btn-refresh-port" class="refresh-link">⟳ SYNC DATA</button>
+              </div>
+              <div class="holdings-table-wrapper">
+                <table id="holdings-table">
+                  <thead>
+                    <tr>
+                      <th>ASSET</th>
+                      <th>QUANTITY</th>
+                      <th>LIVE PRICE</th>
+                      <th>VALUATION</th>
+                      <th>ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody id="holdings-body">
+                    <!-- Dynamic -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Advisor Sidebar -->
+        <div class="portfolio-sidebar">
+          <div class="advisor-card">
+            <div class="advisor-header">
+              <div class="advisor-icon">◈</div>
+              <h3>PERSONAL AI ADVISOR</h3>
+            </div>
+            <p>Runs a specialized SENTINEL scan against your specific portfolio markers.</p>
+            <button id="btn-run-advisor" class="cyber-btn advisor-btn">▸ RUN PORTFOLIO RISK SCAN</button>
+            <div id="advisor-result-container" class="advisor-results hidden">
+              <div class="advisor-loading">
+                <div class="spinner"></div>
+                <span>Scanning Geopolitical Correlations...</span>
+              </div>
+              <div id="advisor-text" class="advisor-text"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
+</div>
+
+  <!-- =========================================================
+       PHASE 1: ISOLATED SPLASH LOGIC
+       This runs in its own script tag so it is NEVER blocked by
+       errors in main.js, graph.js, chat.js, or market.js.
+  ========================================================= -->
+  <script>
+  (function() {
+    "use strict";
+
+    // Set date in briefing screen
+    var now = new Date();
+    var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    var dateStr = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+    var briefDate = document.getElementById('brief-date');
+    if (briefDate) briefDate.textContent = dateStr;
+
+    // Fade in Screen 1
+    var s1 = document.getElementById('splash-1');
+    setTimeout(function() { if (s1) s1.classList.add('active'); }, 80);
+
+    function typeWriter(elementId, text, speed, callback) {
+      var i = 0;
+      var el = document.getElementById(elementId);
+      if (!el) { if (callback) callback(); return; }
+      el.textContent = '';
+      function tick() {
+        if (i < text.length) {
+          el.textContent += text[i];
+          i++;
+          setTimeout(tick, speed);
+        } else if (callback) {
+          setTimeout(callback, 400);
+        }
+      }
+      tick();
+    }
+
+    // ENTER button
+    var btnEnter = document.getElementById('btn-enter');
+    if (btnEnter) {
+      btnEnter.addEventListener('click', function() {
+        var s2 = document.getElementById('splash-2');
+
+        // Fade out Screen 1
+        s1.classList.remove('active');
+        s1.classList.add('fade-out');
+
+        // Try audio
+        var music = document.getElementById('bg-music');
+        if (music) { music.volume = 0.45; music.play().catch(function(){}); }
+
+        setTimeout(function() {
+          s1.style.display = 'none';
+          if (s2) s2.classList.add('active');
+
+          var captions = [
+            "Monitoring 50 critical entities across Defense, Energy, Finance, and Logistics.",
+            "Real-time NSE data feeds. Live geopolitical threat mapping. AI scenario simulation.",
+            "SENTINEL — AI Analyst with full 2026 situational awareness — standing by."
+          ];
+
+          setTimeout(function() {
+            typeWriter('caption-1', captions[0], 32, function() {
+              var c2 = document.getElementById('caption-2');
+              if (c2) c2.style.display = 'block';
+              typeWriter('caption-2', captions[1], 32, function() {
+                var c3 = document.getElementById('caption-3');
+                if (c3) c3.style.display = 'block';
+                typeWriter('caption-3', captions[2], 32, function() {
+                  var stats = document.getElementById('s2-stats');
+                  if (stats) stats.classList.remove('hidden');
+                  setTimeout(function() {
+                    var btnToAuth = document.getElementById('btn-to-auth');
+                    if (btnToAuth) btnToAuth.classList.remove('hidden');
+                  }, 500);
+                });
+              });
+            });
+          }, 500);
+        }, 900);
+      });
+    }
+
+    // TO AUTH button (from Screen 2)
+    var btnToAuth = document.getElementById('btn-to-auth');
+    if (btnToAuth) {
+      btnToAuth.addEventListener('click', function() {
+        var s2 = document.getElementById('splash-2');
+        var s3 = document.getElementById('splash-3');
+        if (s2) s2.classList.remove('active');
+        if (s2) s2.classList.add('fade-out');
+        setTimeout(function() {
+          if (s2) s2.style.display = 'none';
+          if (s3) s3.classList.add('active');
+        }, 1000);
+      });
+    }
+
+    // AUTH TOGGLE (Login / Signup)
+    var btnToggle = document.getElementById('btn-toggle-signup');
+    var isSignup = false;
+    if (btnToggle) {
+      btnToggle.addEventListener('click', function() {
+        isSignup = !isSignup;
+        var nameGroup = document.getElementById('name-group');
+        var btnLogin = document.getElementById('btn-login');
+        if (isSignup) {
+          nameGroup.style.display = 'block';
+          btnLogin.textContent = '▸ REQUEST CLEARANCE';
+          btnToggle.textContent = 'Already have credentials? Login';
+        } else {
+          nameGroup.style.display = 'none';
+          btnLogin.textContent = '▸ VERIFY IDENTITY';
+          btnToggle.textContent = 'Request New Clearance';
+        }
+      });
+    }
+
+    // AUTH ACTIONS
+    var btnLogin = document.getElementById('btn-login');
+    if (btnLogin) {
+      btnLogin.addEventListener('click', function() {
+        var email = document.getElementById('auth-email').value;
+        var pass = document.getElementById('auth-pass').value;
+        var name = document.getElementById('auth-name').value;
+        if (!email || !pass) { alert('Credentials required'); return; }
+        
+        var url = isSignup ? '/api/auth/signup' : '/api/auth/login';
+        var body;
+        var headers = {};
+        
+        if (isSignup) {
+          headers['Content-Type'] = 'application/json';
+          body = JSON.stringify({ email: email, password: pass, full_name: name || 'Agent' });
+        } else {
+          headers['Content-Type'] = 'application/x-www-form-urlencoded';
+          body = new URLSearchParams({ username: email, password: pass });
+        }
+
+        fetch(url, { method: 'POST', headers: headers, body: body })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.access_token) {
+              localStorage.setItem('sentinel_token', data.access_token);
+              finishAuth();
+            } else {
+              alert(data.detail || 'Access Denied');
+            }
+          }).catch(function(e) { alert('Uplink error: ' + e); });
+      });
+    }
+
+    // BYPASS button
+    var btnBypass = document.getElementById('btn-bypass');
+    if (btnBypass) {
+      btnBypass.addEventListener('click', function() {
+        localStorage.setItem('sentinel_guest', 'true');
+        finishAuth();
+      });
+    }
+
+    function finishAuth() {
+      var s3 = document.getElementById('splash-3');
+      if (s3) {
+        s3.classList.remove('active');
+        s3.classList.add('fade-out');
+      }
+      setTimeout(function() {
+        if (s3) s3.style.display = 'none';
+        var mainApp = document.getElementById('main-app');
+        if (mainApp) {
+          mainApp.classList.remove('hidden');
+        }
+        document.body.classList.remove('splash-active');
+      }, 1000);
+    }
+  })();
+  </script>
 
   <script src="/static/js/main.js"></script>
   <script src="/static/js/graph.js"></script>
   <script src="/static/js/chat.js"></script>
+  <script src="/static/js/market.js"></script>
 </body>
 </html>

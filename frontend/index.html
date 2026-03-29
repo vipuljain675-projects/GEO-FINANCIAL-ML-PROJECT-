@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strategic Shield — India's Critical Infrastructure Protection</title>
+  <meta name="description" content="AI/ML platform analyzing India's 50 most critical companies — dependencies, threat vectors, and protection strategies." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">⬡</div>
+      <div>
+        <div class="brand-name">STRATEGIC SHIELD</div>
+        <div class="brand-sub">India Critical Infrastructure</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="overview">
+        <span class="nav-icon">◈</span> Overview
+      </button>
+      <button class="nav-item" data-view="network">
+        <span class="nav-icon">◎</span> Network Graph
+      </button>
+      <button class="nav-item" data-view="threat-sim">
+        <span class="nav-icon">◉</span> Threat Simulator
+      </button>
+      <button class="nav-item" data-view="risk">
+        <span class="nav-icon">▣</span> Risk Matrix
+      </button>
+      <button class="nav-item" data-view="analyst">
+        <span class="nav-icon">◆</span> AI Analyst
+      </button>
+    </nav>
+
+    <div class="sidebar-legend">
+      <div class="legend-title">SECTORS</div>
+      <div class="legend-item"><span class="dot defense"></span> Defense</div>
+      <div class="legend-item"><span class="dot energy"></span> Energy</div>
+      <div class="legend-item"><span class="dot finance"></span> Finance</div>
+      <div class="legend-item"><span class="dot logistics"></span> Logistics</div>
+    </div>
+
+    <div class="sidebar-status">
+      <div class="status-dot"></div>
+      <span id="status-text">Connecting...</span>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h1 id="view-title">Strategic Overview</h1>
+        <span id="view-sub">National Critical Infrastructure Analysis</span>
+      </div>
+      <div class="top-bar-right">
+        <div class="threat-level" id="threat-level-badge">
+          <span class="pulse"></span> THREAT LEVEL: HIGH
+        </div>
+        <div class="timestamp" id="timestamp"></div>
+      </div>
+    </header>
+
+    <!-- Views -->
+    <div id="view-overview" class="view active">
+      <!-- Stat Cards -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Companies Monitored</div>
+          <div class="stat-value" id="stat-total">50</div>
+          <div class="stat-sub">Across 4 sectors</div>
+        </div>
+        <div class="stat-card critical">
+          <div class="stat-label">Critical Risk Nodes</div>
+          <div class="stat-value" id="stat-critical">—</div>
+          <div class="stat-sub">Score ≥ 80</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Dependency Edges</div>
+          <div class="stat-value" id="stat-edges">—</div>
+          <div class="stat-sub">Inter-company links</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Potential GDP Loss</div>
+          <div class="stat-value" id="stat-gdp">—</div>
+          <div class="stat-sub">If top-5 attacked</div>
+        </div>
+      </div>
+
+      <!-- Two columns: top critical nodes + sector breakdown -->
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">TOP CRITICAL NODES</span>
+            <span class="panel-tag">By Vulnerability Score</span>
+          </div>
+          <div class="panel-body" id="top-critical-list">
+            <div class="loading">Loading...</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">SECTOR THREAT EXPOSURE</span>
+            <span class="panel-tag">Aggregate Analysis</span>
+          </div>
+          <div class="panel-body" id="sector-breakdown">
+            <div class="loading">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Threat actors -->
+      <div class="panel" style="margin-top:20px">
+        <div class="panel-header">
+          <span class="panel-title">KNOWN THREAT ACTORS</span>
+          <span class="panel-tag">Active Adversaries</span>
+        </div>
+        <div class="panel-body" id="threat-actors-list">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NETWORK GRAPH VIEW -->
+    <div id="view-network" class="view">
+      <div class="graph-controls">
+        <div class="control-group">
+          <label>Filter Sector</label>
+          <select id="sector-filter">
+            <option value="all">All Sectors</option>
+            <option value="defense">Defense</option>
+            <option value="energy">Energy</option>
+            <option value="finance">Finance</option>
+            <option value="logistics">Logistics</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Node Size</label>
+          <select id="node-size-by">
+            <option value="criticality">Criticality</option>
+            <option value="vulnerability_score">Vulnerability</option>
+            <option value="betweenness">Betweenness</option>
+          </select>
+        </div>
+        <div class="graph-hint">Click any node to see details → Run simulation from detail panel</div>
+      </div>
+      <div class="graph-container">
+        <svg id="network-graph"></svg>
+        <div id="node-detail-panel" class="detail-panel hidden">
+          <button class="close-panel" id="close-detail">✕</button>
+          <div id="detail-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THREAT SIMULATOR VIEW -->
+    <div id="view-threat-sim" class="view">
+      <div class="sim-controls">
+        <div class="control-group">
+          <label>Select Target Company</label>
+          <select id="sim-target">
+            <option value="">— Select company —</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Cascade Depth</label>
+          <select id="sim-depth">
+            <option value="2">2 Levels</option>
+            <option value="3" selected>3 Levels</option>
+            <option value="4">4 Levels</option>
+          </select>
+        </div>
+        <button class="btn-primary" id="run-sim-btn">RUN ATTACK SIMULATION</button>
+      </div>
+      <div id="sim-results" class="sim-results hidden">
+        <div id="sim-summary-cards" class="stat-grid"></div>
+        <div class="two-col" style="margin-top:20px">
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">TARGET ANALYSIS</span></div>
+            <div class="panel-body" id="sim-target-info"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">CASCADE IMPACT</span><span class="panel-tag">Affected Companies</span></div>
+            <div class="panel-body" id="sim-cascade-list"></div>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:20px">
+          <div class="panel-header"><span class="panel-title">THREAT ACTORS</span></div>
+          <div class="panel-body" id="sim-threat-actors"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RISK MATRIX VIEW -->
+    <div id="view-risk" class="view">
+      <div class="risk-filters">
+        <button class="filter-btn active" data-tier="all">All</button>
+        <button class="filter-btn" data-tier="CRITICAL">Critical</button>
+        <button class="filter-btn" data-tier="HIGH">High</button>
+        <button class="filter-btn" data-tier="MEDIUM">Medium</button>
+        <button class="filter-btn" data-tier="LOW">Low</button>
+      </div>
+      <div id="risk-table-container">
+        <table class="risk-table" id="risk-table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Sector</th>
+              <th>Risk Score</th>
+              <th>Tier</th>
+              <th>Criticality</th>
+              <th>Betweenness</th>
+              <th>Revenue $bn</th>
+              <th>Employees</th>
+            </tr>
+          </thead>
+          <tbody id="risk-table-body">
+            <tr><td colspan="8" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AI ANALYST VIEW -->
+    <div id="view-analyst" class="view">
+      <div class="analyst-layout">
+        <div class="chat-container">
+          <div class="chat-header">
+            <div class="sentinel-badge">
+              <div class="sentinel-icon">S</div>
+              <div>
+                <div class="sentinel-name">SENTINEL</div>
+                <div class="sentinel-role">AI Strategic Analyst · NSC Grade</div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="msg-sentinel">
+              <div class="msg-avatar">S</div>
+              <div class="msg-bubble">
+                SENTINEL online. I have full situational awareness on all 50 critical infrastructure entities.<br><br>
+                Ask me about protection strategies, threat actor profiles, cascade failure risks, or geopolitical context. What's your query?
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" id="chat-input" class="chat-input" placeholder="e.g. How can HAL be protected from Chinese cyber attacks?" />
+            <button class="btn-primary" id="send-btn">SEND</button>
+          </div>
+        </div>
+        <div class="quick-queries">
+          <div class="qq-title">SUGGESTED QUERIES</div>
+          <button class="qq-btn" data-q="Which 3 companies, if attacked simultaneously, would cause maximum damage to India?">Max Impact Attack</button>
+          <button class="qq-btn" data-q="What are the cyber vulnerabilities in India's power grid companies?">Power Grid Cyber Risk</button>
+          <button class="qq-btn" data-q="How can HAL.NS be protected from Chinese supply-chain attacks?">Protect HAL</button>
+          <button class="qq-btn" data-q="What happens if Pakistan simultaneously attacks Reliance Jamnagar and Mumbai Port?">Jamnagar + Port Attack</button>
+          <button class="qq-btn" data-q="Which financial companies are most vulnerable to coordinated cyber attacks?">Finance Sector Risk</button>
+          <button class="qq-btn" data-q="Explain the defense-energy dependency chain and its strategic weaknesses">Defense-Energy Chain</button>
+          <button class="qq-btn" data-q="What is China's most likely attack strategy against India's critical infrastructure?">China Strategy</button>
+          <button class="qq-btn" data-q="How does loss of CDSL affect India's economy?">CDSL Impact</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/static/js/main.js"></script>
+  <script src="/static/js/graph.js"></script>
+  <script src="/static/js/chat.js"></script>
+</body>
+</html>

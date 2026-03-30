@@ -5,8 +5,8 @@ from sklearn.preprocessing import StandardScaler
 from datetime import datetime, timedelta
 import random
 
-from graph_engine import get_graph_metrics
-from llm import chat
+from .graph_engine import get_graph_metrics
+from .llm import chat
 
 # --- 1. UNSUPERVISED CLUSTERING (K-MEANS) ---
 def get_vulnerability_clusters(n_clusters=4):

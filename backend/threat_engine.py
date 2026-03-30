@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from graph_engine import load_data, build_graph
+from .graph_engine import load_data, build_graph
 
 GDP_INDIA_BN = 3500  # approximate India GDP in $bn
 

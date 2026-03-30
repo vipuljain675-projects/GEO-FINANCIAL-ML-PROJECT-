@@ -10,8 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link rel="stylesheet" href="/static/css/style.css" />
-  <link rel="stylesheet" href="/static/css/market.css" />
+  <link rel="stylesheet" href="/static/css/style.css?v=2.0" />
+  <link rel="stylesheet" href="/static/css/market.css?v=2.0" />
   <style>
     .event-pills { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px 0; }
     .event-pill { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; border: 1px solid; letter-spacing: 0.3px; cursor: default; }
@@ -63,47 +63,109 @@
     </div>
   </div>
 
-  <!-- Splash 3: Identity Verification (Auth) -->
+  <!-- Splash 3: Strategic Access Console (Auth) -->
   <div id="splash-3" class="splash-screen">
-    <div class="splash-bg" style="background-color: #05080a;"></div>
+    <div class="splash-bg"></div>
     <div class="splash-overlay auth-overlay"></div>
     <div class="scanlines"></div>
     <div class="splash-content auth-content">
       <div class="auth-box">
+        <!-- Decorative Pips -->
+        <div class="console-pip pip-tl">System Status: <span>Active</span></div>
+        <div class="console-pip pip-tr">Network Link: <span>Secure</span></div>
+        <div class="console-pip pip-bl">Encryption: <span>AES-256</span></div>
+        <div class="console-pip pip-br">Sentinel: <span>Online</span></div>
+
         <div class="auth-header">
           <div class="auth-icon">🔒</div>
-          <h2>IDENTITY VERIFICATION</h2>
-          <p>Access requires active strategic clearance</p>
+          <h2 id="auth-title">STRATEGIC ACCESS CONSOLE</h2>
+          <p id="auth-subtitle">Validated Clearance Required</p>
         </div>
         
+        <div class="auth-tabs">
+          <button id="tab-login" class="active" onclick="toggleAuth('login')">LOGIN</button>
+          <button id="tab-signup" onclick="toggleAuth('signup')">SIGN UP</button>
+        </div>
+
         <div class="auth-form" id="auth-form-container">
+          <!-- Main Form -->
           <div class="input-group">
             <label>STRATEGIC EMAIL</label>
             <input type="email" id="auth-email" placeholder="agent@sentinel.gov">
           </div>
-          <div class="input-group" id="name-group" style="display:none;">
-            <label>FULL NAME</label>
-            <input type="text" id="auth-name" placeholder="John Doe">
-          </div>
-          <div class="input-group">
-            <label>SECURITY PASSKEY</label>
-            <input type="password" id="auth-pass" placeholder="••••••••">
+
+          <div class="auth-row">
+            <div class="input-group">
+              <label>SECURITY PASSKEY</label>
+              <input type="password" id="auth-pass" placeholder="••••••••">
+            </div>
+            <div class="input-group" id="name-group">
+              <label>CODENAME / FULL NAME</label>
+              <input type="text" id="auth-name" placeholder="John Doe">
+            </div>
           </div>
           
+          <!-- Primary Actions -->
           <div class="auth-actions">
-            <button id="btn-login" class="cyber-btn primary">▸ VERIFY IDENTITY</button>
-            <button id="btn-toggle-signup" class="text-link">Request New Clearance</button>
+            <button id="btn-verify" class="cyber-btn primary">▸ VERIFY IDENTITY</button>
+            <button id="btn-signup-console" class="cyber-btn primary">▸ REGISTER CLEARANCE</button>
+          </div>
+          
+          <div class="auth-divider">
+            <span>OR</span>
+          </div>
+          
+          <!-- Secondary Actions -->
+          <div class="auth-actions">
+            <button id="btn-google-auth" class="google-btn">
+              <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google" style="width:18px;">
+              SIGN IN WITH G-SUITE
+            </button>
+            <button id="btn-bypass" class="cyber-btn secondary">▸ BYPASS</button>
           </div>
         </div>
-        
-        <div class="auth-divider">
-          <span>OR</span>
-        </div>
-        
-        <button id="btn-bypass" class="cyber-btn secondary">▸ BYPASS (ANONYMOUS GUEST ACCESS)</button>
         
         <div class="auth-footer">
           Unauthorized access attempt will be logged and traced.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Splash 4: Strategic Onboarding -->
+  <div id="splash-4" class="splash-screen hidden">
+    <div class="splash-bg" style="background-color: #05080a;"></div>
+    <div class="splash-overlay onboarding-overlay"></div>
+    <div class="scanlines"></div>
+    <div class="splash-content onboarding-content">
+      <div class="onboarding-box">
+        <div class="onboarding-header">
+          <h2 id="welcome-msg">WELCOME, AGENT</h2>
+          <p>Initialize your strategic portfolio. Mention the purchase price for right analysis.</p>
+        </div>
+
+        <div class="onboarding-body">
+          <div class="onboarding-scroll">
+            <table class="onboarding-table">
+              <thead>
+                <tr>
+                  <th>TICKER (NSE)</th>
+                  <th>QTY</th>
+                  <th>BUY PRICE (₹)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="onboarding-rows">
+                <!-- Rows will be added via JS -->
+              </tbody>
+            </table>
+          </div>
+          <button class="add-row-btn" onclick="addOnboardingRow()">+ ADD ASSET</button>
+        </div>
+
+        <div class="onboarding-footer">
+          <button id="btn-finish-onboarding" class="cyber-btn primary">▸ FINALIZE & ENTER CENTER</button>
+          <button id="btn-skip-onboarding" class="text-link">Skip to Grid</button>
         </div>
       </div>
     </div>
@@ -470,6 +532,7 @@
                     <tr>
                       <th>ASSET</th>
                       <th>QUANTITY</th>
+                      <th>BUY PRICE</th>
                       <th>LIVE PRICE</th>
                       <th>VALUATION</th>
                       <th>ACTION</th>
@@ -555,6 +618,12 @@
         s1.classList.add('fade-out');
 
         // Try audio
+        if (window.sentinelAudio) {
+          window.sentinelAudio.init();
+          window.sentinelAudio.startAmbient();
+          window.sentinelAudio.playTactical(600, 0.2);
+        }
+        
         var music = document.getElementById('bg-music');
         if (music) { music.volume = 0.45; music.play().catch(function(){}); }
 
@@ -605,90 +674,161 @@
       });
     }
 
-    // AUTH TOGGLE (Login / Signup)
-    var btnToggle = document.getElementById('btn-toggle-signup');
-    var isSignup = false;
-    if (btnToggle) {
-      btnToggle.addEventListener('click', function() {
-        isSignup = !isSignup;
-        var nameGroup = document.getElementById('name-group');
-        var btnLogin = document.getElementById('btn-login');
-        if (isSignup) {
-          nameGroup.style.display = 'block';
-          btnLogin.textContent = '▸ REQUEST CLEARANCE';
-          btnToggle.textContent = 'Already have credentials? Login';
-        } else {
-          nameGroup.style.display = 'none';
-          btnLogin.textContent = '▸ VERIFY IDENTITY';
-          btnToggle.textContent = 'Request New Clearance';
-        }
-      });
-    }
+    (function() {
+      // STATE
+      var isSignup = false;
 
-    // AUTH ACTIONS
-    var btnLogin = document.getElementById('btn-login');
-    if (btnLogin) {
-      btnLogin.addEventListener('click', function() {
+      // SELECTORS
+      var splash3 = document.getElementById('splash-3');
+      var splash4 = document.getElementById('splash-4');
+      var mainApp = document.getElementById('main-app');
+      var btnVerify = document.getElementById('btn-verify');
+      var btnSignupConsole = document.getElementById('btn-signup-console');
+      var btnGoogle = document.getElementById('btn-google-auth');
+      var btnBypass = document.getElementById('btn-bypass');
+      var onboardingBody = document.getElementById('onboarding-rows');
+
+      // UI HELPERS
+      window.toggleAuth = function(mode) {
+        isSignup = (mode === 'signup');
+        document.getElementById('tab-login').classList.toggle('active', !isSignup);
+        document.getElementById('tab-signup').classList.toggle('active', isSignup);
+        
+        // In the new console layout, we keep both buttons but can highlight the active one
+        btnVerify.style.opacity = isSignup ? '0.5' : '1';
+        btnSignupConsole.style.opacity = isSignup ? '1' : '0.5';
+        
+        document.getElementById('auth-title').innerText = isSignup ? 'NEW CLEARANCE REGISTRATION' : 'STRATEGIC ACCESS CONSOLE';
+      };
+
+      // AUTH ACTIONS
+      async function handleAuth(signupMode) {
         var email = document.getElementById('auth-email').value;
         var pass = document.getElementById('auth-pass').value;
         var name = document.getElementById('auth-name').value;
-        if (!email || !pass) { alert('Credentials required'); return; }
         
-        var url = isSignup ? '/api/auth/signup' : '/api/auth/login';
-        var body;
-        var headers = {};
-        
-        if (isSignup) {
-          headers['Content-Type'] = 'application/json';
-          body = JSON.stringify({ email: email, password: pass, full_name: name || 'Agent' });
-        } else {
-          headers['Content-Type'] = 'application/x-www-form-urlencoded';
-          body = new URLSearchParams({ username: email, password: pass });
-        }
+        if (!email || !pass) { alert('System requires full credentials.'); return; }
 
-        fetch(url, { method: 'POST', headers: headers, body: body })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (data.access_token) {
-              localStorage.setItem('sentinel_token', data.access_token);
-              finishAuth();
-            } else {
-              alert(data.detail || 'Access Denied');
-            }
-          }).catch(function(e) { alert('Uplink error: ' + e); });
-      });
-    }
+        var url = signupMode ? '/api/auth/signup' : '/api/auth/login';
+        var headers = { 'Content-Type': signupMode ? 'application/json' : 'application/x-www-form-urlencoded' };
+        var body = signupMode ? 
+          JSON.stringify({ email: email, password: pass, full_name: name || 'Agent' }) :
+          new URLSearchParams({ username: email, password: pass });
 
-    // BYPASS button
-    var btnBypass = document.getElementById('btn-bypass');
-    if (btnBypass) {
+        try {
+          var res = await fetch(url, { method: 'POST', headers: headers, body: body });
+          var data = await res.json();
+          if (data.access_token) {
+            localStorage.setItem('sentinel_token', data.access_token);
+            localStorage.removeItem('sentinel_guest');
+            showOnboarding(name || email.split('@')[0]);
+          } else { alert(data.detail || 'Access Denied.'); }
+        } catch (e) { alert('Uplink failure.'); }
+      }
+
+      btnVerify.addEventListener('click', function() { handleAuth(false); });
+      if (btnSignupConsole) {
+        btnSignupConsole.addEventListener('click', function() { handleAuth(true); });
+      }
+
+      if (btnGoogle) {
+          btnGoogle.addEventListener('click', function() {
+            window.location.href = '/api/auth/google/login'; 
+          });
+      }
+
       btnBypass.addEventListener('click', function() {
         localStorage.setItem('sentinel_guest', 'true');
-        finishAuth();
+        localStorage.removeItem('sentinel_token');
+        showOnboarding('Guest');
       });
-    }
 
-    function finishAuth() {
-      var s3 = document.getElementById('splash-3');
-      if (s3) {
-        s3.classList.remove('active');
-        s3.classList.add('fade-out');
-      }
-      setTimeout(function() {
-        if (s3) s3.style.display = 'none';
-        var mainApp = document.getElementById('main-app');
-        if (mainApp) {
-          mainApp.classList.remove('hidden');
+      // ONBOARDING LOGIC
+      function showOnboarding(name) {
+        document.getElementById('welcome-msg').innerText = 'WELCOME, ' + name.toUpperCase();
+        if (splash3) {
+            splash3.classList.remove('active');
+            splash3.classList.add('fade-out');
         }
-        document.body.classList.remove('splash-active');
-      }, 1000);
-    }
+        // Match the 1.2s transition in CSS
+        setTimeout(function() {
+          if (splash3) splash3.style.display = 'none';
+          if (splash4) {
+              splash4.classList.remove('hidden');
+              splash4.style.display = 'flex'; // Force display flex for splash screen
+              setTimeout(() => splash4.classList.add('active'), 10);
+              addOnboardingRow(); 
+          }
+        }, 1200);
+      }
+
+      window.addOnboardingRow = function() {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td><input type="text" placeholder="e.g. RELIANCE.NS" class="onboard-ticker"></td>' +
+                     '<td><input type="number" placeholder="10" class="onboard-qty"></td>' +
+                     '<td><input type="number" placeholder="2500" class="onboard-price"></td>' +
+                     '<td><button class="remove-row" onclick="this.parentElement.parentElement.remove()">✕</button></td>';
+        onboardingBody.appendChild(tr);
+      };
+
+      document.getElementById('btn-finish-onboarding').addEventListener('click', async function() {
+        var rows = document.querySelectorAll('#onboarding-rows tr');
+        var items = [];
+        rows.forEach(function(r) {
+          var ticker = r.querySelector('.onboard-ticker').value;
+          var qty = r.querySelector('.onboard-qty').value;
+          var price = r.querySelector('.onboard-price').value;
+          if (ticker && qty) {
+            items.push({ ticker: ticker, quantity: parseFloat(qty), purchase_price: parseFloat(price) || 0 });
+          }
+        });
+
+        if (items.length > 0 && localStorage.getItem('sentinel_token')) {
+          await fetch('/api/portfolio/bulk', {
+            method: 'POST',
+            headers: { 
+              'Authorization': 'Bearer ' + localStorage.getItem('sentinel_token'),
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(items)
+          });
+        }
+        enterMainApp();
+      });
+
+      document.getElementById('btn-skip-onboarding').addEventListener('click', enterMainApp);
+
+      function enterMainApp() {
+        if (splash4) {
+            splash4.classList.remove('active');
+            splash4.classList.add('fade-out');
+        }
+        setTimeout(function() {
+          if (splash4) splash4.style.display = 'none';
+          if (mainApp) {
+              mainApp.classList.remove('hidden');
+              mainApp.style.opacity = '1'; // Ensure visible
+          }
+          document.body.classList.remove('splash-active');
+          
+          // Trigger the app initialization and initial view
+          if (window.SENTINEL_INIT) {
+              window.SENTINEL_INIT();
+          } else if (typeof init === 'function') {
+              init().then(() => {
+                  if (window.SENTINEL_INIT) window.SENTINEL_INIT();
+              });
+          }
+        }, 1200);
+      }
+    })();
   })();
   </script>
 
-  <script src="/static/js/main.js"></script>
-  <script src="/static/js/graph.js"></script>
-  <script src="/static/js/chat.js"></script>
-  <script src="/static/js/market.js"></script>
+  <script src="/static/js/audio.js?v=2.0"></script>
+  <script src="/static/js/main.js?v=2.0"></script>
+  <script src="/static/js/graph.js?v=2.0"></script>
+  <script src="/static/js/chat.js?v=2.0"></script>
+  <script src="/static/js/market.js?v=2.0"></script>
 </body>
 </html>

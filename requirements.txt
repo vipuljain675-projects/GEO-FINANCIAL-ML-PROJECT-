@@ -14,3 +14,6 @@ python-jose[cryptography]
 google-auth
 google-auth-oauthlib
 requests
+email-validator
+Authlib
+httpx

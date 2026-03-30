@@ -639,7 +639,9 @@ select:focus { border-color: var(--accent); }
 .btn-primary:hover { background: #4f51e0; }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.sim-results { }
+.sim-results {
+  margin-top: 15px;
+}
 
 .cascade-item {
   display: flex;
@@ -1598,6 +1600,247 @@ body.splash-active {
 }
 #main-app.hidden {
   display: none !important;
+}/* AUTH REDESIGN - STRATEGIC ACCESS CONSOLE REDUX */
+#splash-3 {
+  background-color: #05080a !important;
+  background-image: url('/static/img/tactical_map_bg.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
 }
 
+.auth-overlay {
+  background: radial-gradient(circle at center, rgba(13, 20, 28, 0.4) 0%, rgba(5, 8, 10, 0.95) 100%) !important;
+  z-index: 1;
+}
 
+.auth-content {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  z-index: 10;
+}
+
+.auth-box {
+  background: rgba(13, 17, 23, 0.75) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(121, 134, 255, 0.3) !important;
+  border-radius: 24px !important;
+  padding: 60px !important;
+  width: 95vw !important;
+  max-width: 950px !important;
+  min-height: 500px !important;
+  box-shadow: 0 0 100px rgba(0, 0, 0, 0.9), 0 0 40px rgba(121, 134, 255, 0.15) !important;
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.auth-header h2 {
+  font-size: 36px !important;
+  letter-spacing: 6px !important;
+  color: #fff !important;
+  text-shadow: 0 0 20px rgba(121, 134, 255, 0.6) !important;
+  font-weight: 900 !important;
+  margin-bottom: 12px !important;
+}
+
+.auth-tabs {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 20px !important;
+  margin-bottom: 40px !important;
+  background: none !important;
+}
+.auth-tabs button {
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: var(--text-dim) !important;
+  padding: 12px 30px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  font-weight: 800 !important;
+  cursor: pointer;
+  transition: all 0.3s !important;
+}
+.auth-tabs button.active {
+  background: var(--accent) !important;
+  color: white !important;
+  box-shadow: 0 0 25px rgba(99, 102, 241, 0.5) !important;
+}
+
+.auth-row {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 30px !important;
+  margin-bottom: 30px !important;
+  width: 100% !important;
+}
+.auth-row .input-group { flex: 1 !important; }
+
+.input-group label {
+  font-size: 10px !important;
+  letter-spacing: 2px !important;
+  color: var(--text-dim) !important;
+  font-weight: 700 !important;
+  margin-bottom: 10px !important;
+  display: block !important;
+}
+.input-group input {
+  width: 100% !important;
+  background: rgba(13, 17, 23, 0.6) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: #fff !important;
+  padding: 16px !important;
+  border-radius: 10px !important;
+  font-family: var(--mono) !important;
+}
+
+.auth-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 20px !important;
+  margin: 30px 0 !important;
+}
+.auth-actions button {
+  padding: 18px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: 2px !important;
+  border-radius: 12px !important;
+}
+
+.auth-divider {
+  margin: 30px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 15px !important;
+  color: var(--text-dim) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
+.auth-divider::before, .auth-divider::after {
+  content: '' !important;
+  flex: 1 !important;
+  height: 1px !important;
+  background: rgba(255,255,255,0.1) !important;
+}
+
+.google-btn {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  padding: 16px !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+}
+.google-btn:hover { background: rgba(255, 255, 255, 0.1) !important; border-color: var(--accent) !important; }
+
+.console-pip {
+  position: absolute !important;
+  font-size: 10px !important;
+  font-family: var(--mono) !important;
+  color: var(--text-dim) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+  z-index: 10 !important;
+}
+.console-pip span { color: var(--success) !important; font-weight: 800 !important; }
+.console-pip::before {
+  content: '' !important;
+  width: 8px !important; height: 8px !important;
+  background: var(--success) !important;
+  border-radius: 50% !important;
+  animation: pulse-dot 2s infinite !important;
+}
+.pip-tl { top: 30px !important; left: 40px !important; }
+.pip-tr { top: 30px !important; right: 40px !important; }
+.pip-bl { bottom: 30px !important; left: 40px !important; }
+.pip-br { bottom: 30px !important; right: 40px !important; }
+
+/* ONBOARDING REBOOT - SPLASH 4 */
+#splash-4 .splash-bg {
+  background-image: url('/static/img/tactical_map_bg.png') !important;
+  background-size: cover !important;
+  filter: brightness(0.3) contrast(1.1) !important;
+}
+
+.onboarding-box {
+  width: 95vw !important;
+  max-width: 950px !important;
+  min-height: 500px !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(121, 134, 255, 0.3) !important;
+  background: rgba(13, 17, 23, 0.85) !important;
+  backdrop-filter: blur(24px) !important;
+  padding: 60px !important;
+  box-shadow: 0 0 100px rgba(0, 0, 0, 0.9) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 30px !important;
+}
+
+.onboarding-header h2 {
+  font-size: 32px !important;
+  letter-spacing: 4px !important;
+  color: #fff !important;
+  font-weight: 900 !important;
+  margin-bottom: 8px !important;
+  text-shadow: 0 0 15px rgba(121, 134, 255, 0.5) !important;
+}
+
+.onboarding-scroll {
+  max-height: 300px !important;
+  overflow-y: auto !important;
+  border: 1px solid rgba(255,255,255,0.05) !important;
+  border-radius: 12px !important;
+}
+
+.onboarding-table { width: 100% !important; border-collapse: collapse !important; }
+.onboarding-table th {
+  text-align: left !important;
+  padding: 12px !important;
+  font-size: 10px !important;
+  color: var(--text-dim) !important;
+  letter-spacing: 2px !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  background: rgba(13, 17, 23, 0.9) !important;
+}
+.onboarding-table td { padding: 8px !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; }
+.onboarding-table input {
+  background: rgba(0,0,0,0.3) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: #fff !important;
+  padding: 10px !important;
+  border-radius: 8px !important;
+}
+
+.onboarding-footer { display: flex !important; gap: 20px !important; margin-top: 20px !important; }
+
+.remove-row { color: var(--critical) !important; cursor: pointer !important; background: none !important; border: none !important; font-size: 18px !important; }
+
+.add-row-btn {
+  background: rgba(121, 134, 255, 0.1) !important;
+  border: 1px dashed var(--accent) !important;
+  color: var(--accent) !important;
+  padding: 12px !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  font-weight: 700 !important;
+  transition: all 0.3s !important;
+}
+.add-row-btn:hover { background: rgba(121, 134, 255, 0.2) !important; }

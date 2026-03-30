@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -7,20 +8,24 @@ from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from sqlalchemy.orm import Session
 import json
+import os
+from starlette.config import Config
+from authlib.integrations.starlette_client import OAuth
 
 # Database & Logic
 from . import models, auth, database
-from graph_engine import get_graph_metrics, get_top_critical, get_shortest_path, load_data
-from threat_engine import get_sector_risk_summary
-import ml_advanced
-import market_intelligence
-import rag_context
-import llm
+from .graph_engine import get_graph_metrics, get_top_critical, get_shortest_path, load_data
+from .threat_engine import get_sector_risk_summary
+from . import ml_advanced
+from . import market_intelligence
+from . import rag_context
+from . import llm
 
 # Initialize DB
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="Strategic Shield API", version="1.0")
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "strategic-secret-99"))
 
 app.add_middleware(
     CORSMiddleware,
@@ -76,19 +81,77 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     access_token = auth.create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/api/auth/me")
-def read_users_me(current_user: models.User = Depends(get_current_user)):
-    return {"email": current_user.email, "full_name": current_user.full_name, "id": current_user.id}
+# --- GOOGLE AUTH CONFIG ---
+config = Config('.env')
+oauth = OAuth(config)
+
+oauth.register(
+    name='google',
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)
+
+@app.get("/api/auth/google/login")
+async def google_login(request: Request):
+    redirect_uri = request.url_for('auth_google_callback')
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+@app.get("/api/auth/google/callback")
+async def auth_google_callback(request: Request, db: Session = Depends(database.get_db)):
+    token = await oauth.google.authorize_access_token(request)
+    user_info = token.get('userinfo')
+    if not user_info:
+        raise HTTPException(status_code=400, detail="Google authentication failed")
+    
+    email = user_info.email
+    full_name = user_info.name
+    
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        new_user = models.User(email=email, full_name=full_name, hashed_password="GOOGLE_AUTH_EXTERNAL")
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        user = new_user
+    
+    access_token = auth.create_access_token(data={"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # --- PORTFOLIO ENDPOINTS ---
 class PortfolioItem(BaseModel):
     ticker: str
     quantity: float
+    purchase_price: Optional[float] = None
 
 @app.get("/api/portfolio")
 def get_portfolio(current_user: models.User = Depends(get_current_user), db: Session = Depends(database.get_db)):
     items = db.query(models.Portfolio).filter(models.Portfolio.user_id == current_user.id).all()
     return items
+
+@app.post("/api/portfolio/bulk")
+def add_bulk_portfolio(items: List[PortfolioItem], current_user: models.User = Depends(get_current_user), db: Session = Depends(database.get_db)):
+    for item in items:
+        existing = db.query(models.Portfolio).filter(
+            models.Portfolio.user_id == current_user.id,
+            models.Portfolio.ticker == item.ticker.upper()
+        ).first()
+        
+        if existing:
+            existing.quantity = item.quantity
+            existing.purchase_price = item.purchase_price
+        else:
+            new_item = models.Portfolio(
+                ticker=item.ticker.upper(), 
+                quantity=item.quantity, 
+                purchase_price=item.purchase_price,
+                user_id=current_user.id
+            )
+            db.add(new_item)
+    
+    db.commit()
+    return {"status": "success", "count": len(items)}
 
 @app.post("/api/portfolio")
 def add_to_portfolio(item: PortfolioItem, current_user: models.User = Depends(get_current_user), db: Session = Depends(database.get_db)):
@@ -100,8 +163,14 @@ def add_to_portfolio(item: PortfolioItem, current_user: models.User = Depends(ge
     
     if existing:
         existing.quantity += item.quantity
+        if item.purchase_price: existing.purchase_price = item.purchase_price
     else:
-        new_item = models.Portfolio(ticker=item.ticker.upper(), quantity=item.quantity, user_id=current_user.id)
+        new_item = models.Portfolio(
+            ticker=item.ticker.upper(), 
+            quantity=item.quantity, 
+            purchase_price=item.purchase_price,
+            user_id=current_user.id
+        )
         db.add(new_item)
     
     db.commit()
@@ -121,14 +190,24 @@ def remove_from_portfolio(ticker: str, current_user: models.User = Depends(get_c
 def analyze_personal(current_user: models.User = Depends(get_current_user), db: Session = Depends(database.get_db)):
     items = db.query(models.Portfolio).filter(models.Portfolio.user_id == current_user.id).all()
     if not items:
-        return {"response": "Your portfolio is empty. Add some assets to trigger a strategic analysis."}
+        return {"response": "Your portfolio is empty. Add assets during onboarding or in the dashboard to trigger analysis."}
     
-    portfolio_str = ", ".join([f"{i.quantity} units of {i.ticker}" for i in items])
-    prompt = f"Perform a HIGH-LEVEL STRATEGIC RISK ANALYSIS for {current_user.full_name}'s personal investment portfolio: {portfolio_str}. " \
-             "Focus on how current West Asia tensions or logistics disruptions (Red Sea/Hormuz) specifically impact THESE stocks. " \
-             "Provide a 'Portfolio Vulnerability Index' and clear 'Hold/Hedge' defensive recommendations."
+    portfolio_data = []
+    for i in items:
+        live_price = "UNKNOWN"
+        try:
+            # Re-using logic to simulate current price comparison
+            live_price = "₹" + str(market_intelligence.get_market_intelligence(i.ticker).get("price", "N/A"))
+        except: pass
+        
+        p_data = f"- {i.ticker}: {i.quantity} units [Cost: ₹{i.purchase_price or 'N/A'} | Current: {live_price}]"
+        portfolio_data.append(p_data)
+        
+    portfolio_str = "\n".join(portfolio_data)
+    prompt = f"Perform a HIGH-LEVEL STRATEGIC RISK ANALYSIS for {current_user.full_name}'s personal investment portfolio:\n{portfolio_str}\n\n" \
+             "MANDATORY: Compare Purchase Price vs Current Price. If the user is at a loss in a high-threat sector (Defense/Energy), provide 'STRATEGIC HOLD' or 'TACTICAL SELL' advice. " \
+             "Correlate current West Asia shipping lane threats (Hormuz/Red Sea) with these specific assets. Be cinematic and gritty."
     
-    # Simple history bypass for advisor
     response = llm.chat(prompt, [])
     return {"response": response}
 

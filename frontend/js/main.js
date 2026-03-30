@@ -37,6 +37,7 @@ async function init() {
   // Navigation
   navItems.forEach(item => {
     item.addEventListener('click', () => {
+      sentinelAudio.playTactical(400, 0.05);
       switchView(item.dataset.view);
       
       if (item.dataset.view === 'risk' && typeof initMarketIntelligence === 'function') {
@@ -134,6 +135,7 @@ async function renderHoldings(items) {
       <tr>
         <td><strong>${item.ticker}</strong></td>
         <td>${item.quantity}</td>
+        <td>₹${item.purchase_price || '---'}</td>
         <td>${price}</td>
         <td class="valuation-cell">${val}</td>
         <td><button class="delete-btn" onclick="removeFromPortfolio('${item.ticker}')">🗑</button></td>

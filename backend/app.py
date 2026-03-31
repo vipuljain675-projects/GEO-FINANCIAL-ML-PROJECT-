@@ -12,6 +12,9 @@ import os
 from starlette.config import Config
 from authlib.integrations.starlette_client import OAuth
 from urllib.parse import quote
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"), override=True)
 
 # Database & Logic
 from . import models, auth, database
@@ -98,6 +101,8 @@ oauth = OAuth(config)
 oauth.register(
     name='google',
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_id=os.getenv("GOOGLE_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
     client_kwargs={
         'scope': 'openid email profile'
     }
@@ -111,6 +116,18 @@ def google_auth_enabled() -> bool:
 @app.get("/api/auth/google/status")
 def google_status():
     return {"enabled": google_auth_enabled()}
+
+@app.get("/api/auth/google/debug")
+def google_debug():
+    client_id = os.getenv("GOOGLE_CLIENT_ID", "")
+    client_secret = os.getenv("GOOGLE_CLIENT_SECRET", "")
+    return {
+        "enabled": google_auth_enabled(),
+        "client_id_prefix": client_id[:20],
+        "client_id_suffix": client_id[-20:] if client_id else "",
+        "client_secret_prefix": client_secret[:10],
+        "client_secret_length": len(client_secret),
+    }
 
 @app.get("/api/auth/google/login")
 async def google_login(request: Request):

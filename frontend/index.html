@@ -700,8 +700,12 @@
     // Fade in Screen 1
     var s1 = document.getElementById('splash-1');
     if (hasSavedSession && s1) {
-      s1.classList.remove('active');
-      s1.style.display = 'none';
+      ['splash-1', 'splash-2', 'splash-3', 'splash-4'].forEach(function(id) {
+        var splash = document.getElementById(id);
+        if (!splash) return;
+        splash.classList.remove('active', 'fade-out');
+        splash.style.display = 'none';
+      });
     }
     if (!hasSavedSession) {
       setTimeout(function() { if (s1) s1.classList.add('active'); }, 80);
@@ -960,16 +964,26 @@
           if (data.access_token) {
             localStorage.setItem('sentinel_token', data.access_token);
             localStorage.removeItem('sentinel_guest');
-            localStorage.setItem('sentinel_user_name', (name || email.split('@')[0]).trim());
+            var profileName = (name || email.split('@')[0]).trim();
+            try {
+              var profileRes = await fetch('/api/auth/me', {
+                headers: { 'Authorization': 'Bearer ' + data.access_token }
+              });
+              var profileData = await parseAuthResponse(profileRes);
+              if (profileRes.ok && profileData.full_name) {
+                profileName = profileData.full_name;
+              }
+            } catch (profileErr) {}
+            localStorage.setItem('sentinel_user_name', profileName);
             setAuthStatus(signupMode ? 'Clearance created. Initializing onboarding...' : 'Identity verified. Initializing onboarding...', 'success');
             if (signupMode) {
               localStorage.removeItem('sentinel_onboarding_complete');
-              showOnboarding((name || email.split('@')[0]).trim());
+              showOnboarding(profileName);
             } else {
               if (localStorage.getItem('sentinel_onboarding_complete') === 'true') {
                 enterMainApp();
               } else {
-                showOnboarding((name || email.split('@')[0]).trim());
+                showOnboarding(profileName);
               }
             }
           } else {

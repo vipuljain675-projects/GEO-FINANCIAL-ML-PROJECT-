@@ -514,6 +514,25 @@
           </div>
 
           <div class="portfolio-dashboard">
+            <div class="portfolio-summary-grid" id="portfolio-summary-grid">
+              <div class="summary-tile">
+                <span class="summary-label">Total Invested</span>
+                <span class="summary-value" id="summary-invested">—</span>
+              </div>
+              <div class="summary-tile">
+                <span class="summary-label">Current Value</span>
+                <span class="summary-value" id="summary-current">—</span>
+              </div>
+              <div class="summary-tile">
+                <span class="summary-label">Total P/L</span>
+                <span class="summary-value" id="summary-pnl">—</span>
+              </div>
+              <div class="summary-tile">
+                <span class="summary-label">Highest Risk</span>
+                <span class="summary-value" id="summary-risk">—</span>
+              </div>
+            </div>
+
             <!-- Add Asset Form -->
             <div class="portfolio-card add-asset-card">
               <h3>REGISTER STRATEGIC ASSET</h3>
@@ -569,6 +588,16 @@
                 </table>
               </div>
             </div>
+
+            <div class="portfolio-card holdings-card">
+              <div class="card-header">
+                <h3>AI DECISION CARDS</h3>
+                <span class="panel-tag">Readable Portfolio Guidance</span>
+              </div>
+              <div id="portfolio-decision-cards" class="decision-card-grid">
+                <div class="loading">Run the portfolio scan to generate action cards.</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -587,6 +616,28 @@
                 <span>Scanning Geopolitical Correlations...</span>
               </div>
               <div id="advisor-text" class="advisor-text"></div>
+            </div>
+          </div>
+
+          <div class="advisor-card portfolio-chat-card">
+            <div class="advisor-header">
+              <div class="advisor-icon">◎</div>
+              <h3>ASK YOUR PORTFOLIO</h3>
+            </div>
+            <div class="portfolio-chat-quick">
+              <button class="portfolio-chat-prompt" data-prompt="Which holding is my biggest risk right now?">Biggest risk?</button>
+              <button class="portfolio-chat-prompt" data-prompt="Should I hold or reduce my worst performer?">Worst performer?</button>
+              <button class="portfolio-chat-prompt" data-prompt="If West Asia escalates, what changes in this portfolio?">West Asia scenario</button>
+            </div>
+            <div id="portfolio-chat-messages" class="portfolio-chat-messages">
+              <div class="portfolio-chat-msg assistant">
+                <div class="portfolio-chat-role">SENTINEL</div>
+                <div class="portfolio-chat-bubble">Ask me anything about your uploaded holdings and I will answer using your buy date, buy price, sector exposure, and current position context.</div>
+              </div>
+            </div>
+            <div class="portfolio-chat-input-row">
+              <input type="text" id="portfolio-chat-input" class="chat-input" placeholder="Ask about one holding or the whole portfolio">
+              <button id="portfolio-chat-send" class="btn-primary">ASK</button>
             </div>
           </div>
         </div>
@@ -610,10 +661,19 @@
     var dateStr = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
     var briefDate = document.getElementById('brief-date');
     if (briefDate) briefDate.textContent = dateStr;
+    var hasSavedSession = !!localStorage.getItem('sentinel_token') ||
+      localStorage.getItem('sentinel_guest') === 'true' ||
+      new URLSearchParams(window.location.search).has('auth_token');
 
     // Fade in Screen 1
     var s1 = document.getElementById('splash-1');
-    setTimeout(function() { if (s1) s1.classList.add('active'); }, 80);
+    if (hasSavedSession && s1) {
+      s1.classList.remove('active');
+      s1.style.display = 'none';
+    }
+    if (!hasSavedSession) {
+      setTimeout(function() { if (s1) s1.classList.add('active'); }, 80);
+    }
 
     function typeWriter(elementId, text, speed, callback) {
       var i = 0;
@@ -1026,30 +1086,43 @@
         var params = new URLSearchParams(window.location.search);
         var queryToken = params.get('auth_token');
         var queryName = params.get('auth_name');
+        var storedToken = localStorage.getItem('sentinel_token');
+        var isGuestSession = localStorage.getItem('sentinel_guest') === 'true';
 
-        if (!queryToken) {
+        if (isGuestSession && !queryToken && !storedToken) {
+          enterMainApp();
           return;
         }
 
-        localStorage.setItem('sentinel_token', queryToken);
+        var activeToken = queryToken || storedToken;
+        if (!activeToken) return;
+
+        localStorage.setItem('sentinel_token', activeToken);
         localStorage.removeItem('sentinel_guest');
         if (queryName) localStorage.setItem('sentinel_user_name', queryName);
-        window.history.replaceState({}, document.title, window.location.pathname);
+        if (queryToken) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
 
         try {
           var res = await fetch('/api/auth/me', {
-            headers: { 'Authorization': 'Bearer ' + queryToken }
+            headers: { 'Authorization': 'Bearer ' + activeToken }
           });
 
           if (!res.ok) throw new Error('Session expired');
           var profile = await res.json();
           localStorage.setItem('sentinel_user_name', profile.full_name || profile.email);
-          showOnboarding(profile.full_name || profile.email.split('@')[0]);
+          if (localStorage.getItem('sentinel_onboarding_complete') === 'true') {
+            enterMainApp();
+          } else {
+            showOnboarding(profile.full_name || profile.email.split('@')[0]);
+          }
         } catch (err) {
           localStorage.removeItem('sentinel_token');
           localStorage.removeItem('sentinel_user_name');
           localStorage.removeItem('sentinel_onboarding_complete');
-          setAuthStatus('Google sign-in expired. Log in again to continue.', 'error');
+          localStorage.removeItem('sentinel_guest');
+          setAuthStatus('Session expired. Log in again to continue.', 'error');
         }
       }
 

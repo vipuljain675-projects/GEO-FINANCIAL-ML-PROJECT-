@@ -1,6 +1,7 @@
 // State
 let globalData = {};
 let riskData = [];
+let portfolioChatHistory = [];
 
 // DOM Elements
 const views = document.querySelectorAll('.view');
@@ -119,8 +120,11 @@ async function fetchHoldings() {
     if (!res.ok) throw new Error('Auth failed');
     const items = await res.json();
     renderHoldings(items);
+    renderPortfolioSummaryFromItems(items);
+    return items;
   } catch (e) {
     console.error(e);
+    return [];
   }
 }
 
@@ -158,6 +162,116 @@ async function renderHoldings(items) {
     `;
   }
   body.innerHTML = html;
+}
+
+function formatMoney(value) {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  return '₹' + Number(value).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+}
+
+function formatPct(value) {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  const sign = value > 0 ? '+' : '';
+  return `${sign}${value.toFixed(2)}%`;
+}
+
+function renderPortfolioSummaryFromItems(items) {
+  document.getElementById('summary-invested').textContent = '—';
+  document.getElementById('summary-current').textContent = items && items.length ? 'Live sync via scan' : '—';
+  document.getElementById('summary-pnl').textContent = items && items.length ? 'Run scan' : '—';
+  document.getElementById('summary-risk').textContent = items && items.length ? 'Run scan' : '—';
+}
+
+function renderPortfolioSummary(summary) {
+  document.getElementById('summary-invested').textContent = formatMoney(summary.total_invested);
+  document.getElementById('summary-current').textContent = formatMoney(summary.current_value);
+  document.getElementById('summary-pnl').textContent = summary.total_pnl === null || summary.total_pnl === undefined
+    ? '—'
+    : `${formatMoney(summary.total_pnl)} (${formatPct(summary.total_pnl_pct)})`;
+  document.getElementById('summary-risk').textContent = summary.highest_risk || '—';
+}
+
+function renderDecisionCards(holdings) {
+  const container = document.getElementById('portfolio-decision-cards');
+  if (!container) return;
+  if (!holdings || holdings.length === 0) {
+    container.innerHTML = '<div class="loading">Add holdings and run the scan to generate action cards.</div>';
+    return;
+  }
+  container.innerHTML = holdings.map(holding => `
+    <article class="decision-card">
+      <div class="decision-card-head">
+        <div>
+          <div class="decision-card-title">${holding.company_name}</div>
+          <div class="decision-card-meta">${holding.ticker} · ${holding.sector.toUpperCase()} · ${holding.role}</div>
+        </div>
+        <span class="decision-badge ${holding.action.replace(' ', '_')}">${holding.action.replace('_', ' ')}</span>
+      </div>
+      <div class="decision-metrics">
+        <div class="decision-metric">
+          <span class="decision-metric-label">Buy</span>
+          <span class="decision-metric-value">${formatMoney(holding.purchase_price)} on ${holding.purchase_date || '—'}</span>
+        </div>
+        <div class="decision-metric">
+          <span class="decision-metric-label">Current</span>
+          <span class="decision-metric-value">${formatMoney(holding.live_price)}</span>
+        </div>
+        <div class="decision-metric">
+          <span class="decision-metric-label">P/L</span>
+          <span class="decision-metric-value">${formatMoney(holding.pnl_value)} / ${formatPct(holding.pnl_pct)}</span>
+        </div>
+        <div class="decision-metric">
+          <span class="decision-metric-label">Portfolio Weight</span>
+          <span class="decision-metric-value">${formatPct(holding.concentration_pct)}</span>
+        </div>
+      </div>
+      <div class="decision-rationale">${holding.rationale}</div>
+      <div class="decision-thesis">${holding.thesis}</div>
+    </article>
+  `).join('');
+}
+
+function appendPortfolioChatMessage(role, text) {
+  const container = document.getElementById('portfolio-chat-messages');
+  if (!container) return;
+  const node = document.createElement('div');
+  node.className = `portfolio-chat-msg ${role}`;
+  node.innerHTML = `
+    <div class="portfolio-chat-role">${role === 'user' ? 'YOU' : 'SENTINEL'}</div>
+    <div class="portfolio-chat-bubble">${marked.parse(text)}</div>
+  `;
+  container.appendChild(node);
+  container.scrollTop = container.scrollHeight;
+}
+
+async function sendPortfolioChatMessage(prefillText) {
+  const input = document.getElementById('portfolio-chat-input');
+  const sendBtn = document.getElementById('portfolio-chat-send');
+  const text = (prefillText || input?.value || '').trim();
+  if (!text) return;
+
+  appendPortfolioChatMessage('user', text);
+  if (input) input.value = '';
+  if (sendBtn) sendBtn.disabled = true;
+
+  try {
+    const res = await fetch('/api/personal/chat', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ message: text, history: portfolioChatHistory })
+    });
+    const data = await res.json();
+    const reply = data.response || 'No response from portfolio advisor.';
+    appendPortfolioChatMessage('assistant', reply);
+    portfolioChatHistory.push({ role: 'user', content: text });
+    portfolioChatHistory.push({ role: 'assistant', content: reply });
+    if (portfolioChatHistory.length > 20) portfolioChatHistory = portfolioChatHistory.slice(-20);
+  } catch (e) {
+    appendPortfolioChatMessage('assistant', `Comm-link failure: ${e.message}`);
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+    if (input) input.focus();
+  }
 }
 
 window.removeFromPortfolio = async (ticker) => {
@@ -212,10 +326,12 @@ document.getElementById('btn-run-advisor')?.addEventListener('click', async () =
     const res = await fetch('/api/personal/analyze', { method: 'POST', headers: getAuthHeaders() });
     const data = await res.json();
     document.querySelector('.advisor-loading').style.display = 'none';
+    renderPortfolioSummary(data.summary || {});
+    renderDecisionCards(data.holdings || []);
     
     // Typewriter effect for advisor
     let i = 0;
-    const fullText = data.response;
+    const fullText = data.response || 'No advisor response available.';
     function tick() {
       if (i < fullText.length) {
         text.innerHTML = marked.parse(fullText.substring(0, i + 3));
@@ -231,6 +347,14 @@ document.getElementById('btn-run-advisor')?.addEventListener('click', async () =
     alert(e);
     btn.disabled = false;
   }
+});
+
+document.getElementById('portfolio-chat-send')?.addEventListener('click', () => sendPortfolioChatMessage());
+document.getElementById('portfolio-chat-input')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') sendPortfolioChatMessage();
+});
+document.querySelectorAll('.portfolio-chat-prompt').forEach(btn => {
+  btn.addEventListener('click', () => sendPortfolioChatMessage(btn.dataset.prompt || ''));
 });
 
 function switchView(viewId) {

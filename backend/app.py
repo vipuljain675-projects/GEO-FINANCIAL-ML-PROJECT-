@@ -6,7 +6,6 @@ from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
-from sqlalchemy.orm import Session
 import json
 import os
 from starlette.config import Config
@@ -17,17 +16,13 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"), override=True)
 
 # Database & Logic
-from . import models, auth, database
+from . import auth, database
 from .graph_engine import get_graph_metrics, get_top_critical, get_shortest_path, load_data
 from .threat_engine import get_sector_risk_summary
 from . import ml_advanced
 from . import market_intelligence
 from . import rag_context
 from . import llm
-
-# Initialize DB
-models.Base.metadata.create_all(bind=database.engine)
-database.ensure_schema_updates()
 
 app = FastAPI(title="Strategic Shield API", version="1.0")
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "strategic-secret-99"))
@@ -41,16 +36,40 @@ app.add_middleware(
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
+
+@app.on_event("startup")
+def startup_initialize_database():
+    database.initialize_database()
+
+def _serialize_user(user: dict) -> dict:
+    return {
+        "id": str(user["_id"]),
+        "email": user["email"],
+        "full_name": user.get("full_name") or user["email"].split("@")[0],
+    }
+
+
+def _serialize_portfolio_item(item: dict) -> dict:
+    return {
+        "id": str(item["_id"]),
+        "ticker": item["ticker"],
+        "quantity": float(item.get("quantity", 0)),
+        "purchase_price": item.get("purchase_price"),
+        "purchase_date": item.get("purchase_date"),
+        "user_id": item["user_id"],
+    }
+
+
 # --- AUTH UTILS ---
-def get_current_user(db: Session = Depends(database.get_db), token: str = Depends(oauth2_scheme)):
+def get_current_user(db=Depends(database.get_db), token: str = Depends(oauth2_scheme)):
     payload = auth.decode_access_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
     email: str = payload.get("sub")
-    user = db.query(models.User).filter(models.User.email == email).first()
+    user = db["users"].find_one({"email": email})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return user
+    return _serialize_user(user)
 
 # --- AUTH ENDPOINTS ---
 class UserCreate(BaseModel):
@@ -67,32 +86,35 @@ class UserProfile(BaseModel):
     full_name: str
 
 @app.post("/api/auth/signup", response_model=Token)
-def signup(user: UserCreate, db: Session = Depends(database.get_db)):
-    db_user = db.query(models.User).filter(models.User.email == user.email).first()
+def signup(user: UserCreate, db=Depends(database.get_db)):
+    db_user = db["users"].find_one({"email": user.email})
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
-    hashed_password = auth.get_password_hash(user.password)
-    new_user = models.User(email=user.email, hashed_password=hashed_password, full_name=user.full_name)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    access_token = auth.create_access_token(data={"sub": new_user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
 
-@app.post("/api/auth/login", response_model=Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(database.get_db)):
-    user = db.query(models.User).filter(models.User.email == form_data.username).first()
-    if not user or not auth.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Incorrect email or password")
-    
+    hashed_password = auth.get_password_hash(user.password)
+    db["users"].insert_one(
+        {
+            "email": user.email,
+            "hashed_password": hashed_password,
+            "full_name": user.full_name,
+        }
+    )
+
     access_token = auth.create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
+@app.post("/api/auth/login", response_model=Token)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db=Depends(database.get_db)):
+    user = db["users"].find_one({"email": form_data.username})
+    if not user or not auth.verify_password(form_data.password, user["hashed_password"]):
+        raise HTTPException(status_code=401, detail="Incorrect email or password")
+
+    access_token = auth.create_access_token(data={"sub": user["email"]})
+    return {"access_token": access_token, "token_type": "bearer"}
+
 @app.get("/api/auth/me", response_model=UserProfile)
-def me(current_user: models.User = Depends(get_current_user)):
-    return {"email": current_user.email, "full_name": current_user.full_name}
+def me(current_user=Depends(get_current_user)):
+    return {"email": current_user["email"], "full_name": current_user["full_name"]}
 
 # --- GOOGLE AUTH CONFIG ---
 config = Config('.env')
@@ -137,7 +159,7 @@ async def google_login(request: Request):
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 @app.get("/api/auth/google/callback")
-async def auth_google_callback(request: Request, db: Session = Depends(database.get_db)):
+async def auth_google_callback(request: Request, db=Depends(database.get_db)):
     if not google_auth_enabled():
         raise HTTPException(status_code=503, detail="Google sign-in is not configured on this system")
     token = await oauth.google.authorize_access_token(request)
@@ -147,16 +169,18 @@ async def auth_google_callback(request: Request, db: Session = Depends(database.
     
     email = user_info.email
     full_name = user_info.name
-    
-    user = db.query(models.User).filter(models.User.email == email).first()
+
+    user = db["users"].find_one({"email": email})
     if not user:
-        new_user = models.User(email=email, full_name=full_name, hashed_password="GOOGLE_AUTH_EXTERNAL")
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-        user = new_user
-    
-    access_token = auth.create_access_token(data={"sub": user.email})
+        db["users"].insert_one(
+            {
+                "email": email,
+                "full_name": full_name,
+                "hashed_password": "GOOGLE_AUTH_EXTERNAL",
+            }
+        )
+
+    access_token = auth.create_access_token(data={"sub": email})
     redirect_url = request.url_for('root')
     return RedirectResponse(
         url=f"{redirect_url}?auth_token={quote(access_token)}&auth_name={quote(full_name)}",
@@ -198,8 +222,8 @@ def _portfolio_action_label(pnl_pct: Optional[float], sector: str, concentration
         return "BUY MORE", "Position is near cost basis, so disciplined accumulation can improve the average if conviction is intact."
     return "HOLD", "Current move still looks tactical rather than thesis-breaking."
 
-def build_portfolio_intelligence(current_user: models.User, db: Session):
-    items = db.query(models.Portfolio).filter(models.Portfolio.user_id == current_user.id).all()
+def build_portfolio_intelligence(current_user: dict, db):
+    items = list(db["portfolios"].find({"user_id": current_user["id"]}))
     if not items:
         return {
             "summary": {
@@ -222,15 +246,16 @@ def build_portfolio_intelligence(current_user: models.User, db: Session):
     known_invested = False
 
     for item in items:
-        company = company_index.get(item.ticker.upper(), {})
-        company_name = company.get("name", item.ticker.upper())
+        ticker = (item.get("ticker") or "").upper()
+        company = company_index.get(ticker, {})
+        company_name = company.get("name", ticker)
         sector = company.get("sector", "unknown")
         role = company.get("role", "Unknown strategic role")
         threat_score = company.get("criticality", 5)
 
         live_price = None
         try:
-            market_data = market_intelligence.get_market_intelligence(item.ticker, company_name, sector)
+            market_data = market_intelligence.get_market_intelligence(ticker, company_name, sector)
             live_price = market_data.get("history", {}).get("current_price")
             if live_price is None:
                 live_price = market_data.get("price")
@@ -240,24 +265,24 @@ def build_portfolio_intelligence(current_user: models.User, db: Session):
             live_price = None
 
         invested = None
-        if item.purchase_price is not None:
-            invested = float(item.purchase_price) * float(item.quantity)
+        if item.get("purchase_price") is not None:
+            invested = float(item["purchase_price"]) * float(item.get("quantity", 0))
             total_invested_value += invested
             known_invested = True
-        current_value = live_price * float(item.quantity) if live_price is not None else None
+        current_value = live_price * float(item.get("quantity", 0)) if live_price is not None else None
         if current_value is not None:
             total_current_value += current_value
         pnl_value = current_value - invested if invested is not None and current_value is not None else None
         pnl_pct = ((pnl_value / invested) * 100) if invested not in (None, 0) and pnl_value is not None else None
 
         enriched.append({
-            "ticker": item.ticker.upper(),
+            "ticker": ticker,
             "company_name": company_name,
             "sector": sector,
             "role": role,
-            "quantity": float(item.quantity),
-            "purchase_price": item.purchase_price,
-            "purchase_date": item.purchase_date,
+            "quantity": float(item.get("quantity", 0)),
+            "purchase_price": item.get("purchase_price"),
+            "purchase_date": item.get("purchase_date"),
             "live_price": live_price,
             "invested": invested,
             "current_value": current_value,
@@ -316,72 +341,63 @@ def build_portfolio_intelligence(current_user: models.User, db: Session):
     }
 
 @app.get("/api/portfolio")
-def get_portfolio(current_user: models.User = Depends(get_current_user), db: Session = Depends(database.get_db)):
-    items = db.query(models.Portfolio).filter(models.Portfolio.user_id == current_user.id).all()
-    return items
+def get_portfolio(current_user=Depends(get_current_user), db=Depends(database.get_db)):
+    items = db["portfolios"].find({"user_id": current_user["id"]}).sort("ticker", 1)
+    return [_serialize_portfolio_item(item) for item in items]
 
 @app.post("/api/portfolio/bulk")
-def add_bulk_portfolio(items: List[PortfolioItem], current_user: models.User = Depends(get_current_user), db: Session = Depends(database.get_db)):
+def add_bulk_portfolio(items: List[PortfolioItem], current_user=Depends(get_current_user), db=Depends(database.get_db)):
     for item in items:
-        existing = db.query(models.Portfolio).filter(
-            models.Portfolio.user_id == current_user.id,
-            models.Portfolio.ticker == item.ticker.upper()
-        ).first()
-        
-        if existing:
-            existing.quantity = item.quantity
-            existing.purchase_price = item.purchase_price
-            existing.purchase_date = item.purchase_date
-        else:
-            new_item = models.Portfolio(
-                ticker=item.ticker.upper(), 
-                quantity=item.quantity, 
-                purchase_price=item.purchase_price,
-                purchase_date=item.purchase_date,
-                user_id=current_user.id
-            )
-            db.add(new_item)
-    
-    db.commit()
+        db["portfolios"].update_one(
+            {"user_id": current_user["id"], "ticker": item.ticker.upper()},
+            {
+                "$set": {
+                    "user_id": current_user["id"],
+                    "ticker": item.ticker.upper(),
+                    "quantity": item.quantity,
+                    "purchase_price": item.purchase_price,
+                    "purchase_date": item.purchase_date,
+                }
+            },
+            upsert=True,
+        )
+
     return {"status": "success", "count": len(items)}
 
 @app.post("/api/portfolio")
-def add_to_portfolio(item: PortfolioItem, current_user: models.User = Depends(get_current_user), db: Session = Depends(database.get_db)):
-    # Check if exists
-    existing = db.query(models.Portfolio).filter(
-        models.Portfolio.user_id == current_user.id,
-        models.Portfolio.ticker == item.ticker.upper()
-    ).first()
-    
+def add_to_portfolio(item: PortfolioItem, current_user=Depends(get_current_user), db=Depends(database.get_db)):
+    existing = db["portfolios"].find_one({"user_id": current_user["id"], "ticker": item.ticker.upper()})
+
     if existing:
-        existing.quantity += item.quantity
-        if item.purchase_price: existing.purchase_price = item.purchase_price
-        if item.purchase_date: existing.purchase_date = item.purchase_date
+        update_fields = {
+            "quantity": float(existing.get("quantity", 0)) + item.quantity,
+        }
+        if item.purchase_price is not None:
+            update_fields["purchase_price"] = item.purchase_price
+        if item.purchase_date:
+            update_fields["purchase_date"] = item.purchase_date
+        db["portfolios"].update_one({"_id": existing["_id"]}, {"$set": update_fields})
     else:
-        new_item = models.Portfolio(
-            ticker=item.ticker.upper(), 
-            quantity=item.quantity, 
-            purchase_price=item.purchase_price,
-            purchase_date=item.purchase_date,
-            user_id=current_user.id
+        db["portfolios"].insert_one(
+            {
+                "ticker": item.ticker.upper(),
+                "quantity": item.quantity,
+                "purchase_price": item.purchase_price,
+                "purchase_date": item.purchase_date,
+                "user_id": current_user["id"],
+            }
         )
-        db.add(new_item)
-    
-    db.commit()
+
     return {"status": "success"}
 
 @app.delete("/api/portfolio/{ticker}")
-def remove_from_portfolio(ticker: str, current_user: models.User = Depends(get_current_user), db: Session = Depends(database.get_db)):
-    db.query(models.Portfolio).filter(
-        models.Portfolio.user_id == current_user.id,
-        models.Portfolio.ticker == ticker.upper()
-    ).delete()
-    db.commit()
+def remove_from_portfolio(ticker: str, current_user=Depends(get_current_user), db=Depends(database.get_db)):
+    db["portfolios"].delete_one({"user_id": current_user["id"], "ticker": ticker.upper()})
     return {"status": "deleted"}
 
 # --- AI PERSONAL ADVISOR ---
 @app.post("/api/personal/analyze")
-def analyze_personal(current_user: models.User = Depends(get_current_user), db: Session = Depends(database.get_db)):
+def analyze_personal(current_user=Depends(get_current_user), db=Depends(database.get_db)):
     intelligence = build_portfolio_intelligence(current_user, db)
     if not intelligence["holdings"]:
         return {
@@ -391,7 +407,7 @@ def analyze_personal(current_user: models.User = Depends(get_current_user), db: 
         }
 
     prompt = (
-        f"You are the Strategic Shield personal portfolio advisor. Analyze {current_user.full_name}'s holdings.\n\n"
+        f"You are the Strategic Shield personal portfolio advisor. Analyze {current_user['full_name']}'s holdings.\n\n"
         f"Portfolio Snapshot:\n{intelligence['narrative_prompt']}\n\n"
         "Write a concise portfolio verdict with exactly these sections:\n"
         "1. PORTFOLIO VERDICT\n"
@@ -408,13 +424,13 @@ def analyze_personal(current_user: models.User = Depends(get_current_user), db: 
     }
 
 @app.post("/api/personal/chat")
-def chat_personal(body: PortfolioChatRequest, current_user: models.User = Depends(get_current_user), db: Session = Depends(database.get_db)):
+def chat_personal(body: PortfolioChatRequest, current_user=Depends(get_current_user), db=Depends(database.get_db)):
     intelligence = build_portfolio_intelligence(current_user, db)
     if not intelligence["holdings"]:
         return {"response": "Your portfolio is empty. Add holdings first, then ask me portfolio questions."}
 
     prompt = (
-        f"You are the personal portfolio copilot for {current_user.full_name}.\n"
+        f"You are the personal portfolio copilot for {current_user['full_name']}.\n"
         f"Use this live portfolio context:\n{intelligence['narrative_prompt']}\n\n"
         f"User question: {body.message}\n\n"
         "Answer directly about this user's own holdings. Use buy date, buy price, current price, sector, role, and portfolio concentration."

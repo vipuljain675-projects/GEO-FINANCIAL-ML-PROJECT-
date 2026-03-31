@@ -9,8 +9,8 @@ from pymongo import ASCENDING, MongoClient
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"), override=True)
 
 
-MONGODB_URI = os.getenv("MONGODB_URI")
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./strategic_shield.db")
+MONGODB_URI = (os.getenv("MONGODB_URI") or "").strip() or None
+DATABASE_URL = (os.getenv("DATABASE_URL", "sqlite:///./strategic_shield.db") or "").strip()
 
 _client = None
 _db = None

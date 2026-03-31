@@ -19,3 +19,4 @@ Authlib
 httpx
 pymongo
 itsdangerous
+python-multipart

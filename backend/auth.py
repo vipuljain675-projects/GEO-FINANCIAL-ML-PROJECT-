@@ -9,7 +9,9 @@ SECRET_KEY = os.getenv("SECRET_KEY", "7b0a3c9e1f2d4b5a6c8e9f0a1b2c3d4e5f6g7h8i9j
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 1 week
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Use pbkdf2_sha256 instead of bcrypt here because the local bcrypt/passlib
+# combo breaks under the current environment and crashes signup.
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)

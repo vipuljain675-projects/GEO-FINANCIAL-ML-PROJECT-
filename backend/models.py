@@ -19,6 +19,7 @@ class Portfolio(Base):
     ticker = Column(String, index=True)
     quantity = Column(Float)
     purchase_price = Column(Float, nullable=True)
+    purchase_date = Column(String, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="portfolios")

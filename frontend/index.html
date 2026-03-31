@@ -88,6 +88,10 @@
         </div>
 
         <div class="auth-form" id="auth-form-container">
+          <div class="auth-mode-banner" id="auth-mode-banner">
+            Existing operative access. Use your registered credentials to enter the grid.
+          </div>
+
           <!-- Main Form -->
           <div class="input-group">
             <label>STRATEGIC EMAIL</label>
@@ -99,7 +103,7 @@
               <label>SECURITY PASSKEY</label>
               <input type="password" id="auth-pass" placeholder="••••••••">
             </div>
-            <div class="input-group" id="name-group">
+            <div class="input-group hidden" id="name-group">
               <label>CODENAME / FULL NAME</label>
               <input type="text" id="auth-name" placeholder="John Doe">
             </div>
@@ -107,8 +111,8 @@
           
           <!-- Primary Actions -->
           <div class="auth-actions">
-            <button id="btn-verify" class="cyber-btn primary">▸ VERIFY IDENTITY</button>
-            <button id="btn-signup-console" class="cyber-btn primary">▸ REGISTER CLEARANCE</button>
+            <button id="btn-verify" class="cyber-btn primary">▸ LOGIN TO GRID</button>
+            <button id="btn-signup-console" class="cyber-btn primary hidden">▸ CREATE ACCOUNT</button>
           </div>
           
           <div class="auth-divider">
@@ -123,6 +127,8 @@
             </button>
             <button id="btn-bypass" class="cyber-btn secondary">▸ BYPASS</button>
           </div>
+
+          <div class="auth-status hidden" id="auth-status"></div>
         </div>
         
         <div class="auth-footer">
@@ -141,7 +147,7 @@
       <div class="onboarding-box">
         <div class="onboarding-header">
           <h2 id="welcome-msg">WELCOME, AGENT</h2>
-          <p>Initialize your strategic portfolio. Mention the purchase price for right analysis.</p>
+          <p>Build your portfolio from the 50 tracked companies. Add quantity and buy price so the advisor can compare cost, current price, threat exposure, and possible future impact.</p>
         </div>
 
         <div class="onboarding-body">
@@ -149,9 +155,11 @@
             <table class="onboarding-table">
               <thead>
                 <tr>
-                  <th>TICKER (NSE)</th>
+                  <th>COMPANY</th>
+                  <th>TICKER</th>
                   <th>QTY</th>
                   <th>BUY PRICE (₹)</th>
+                  <th>BUY DATE</th>
                   <th></th>
                 </tr>
               </thead>
@@ -228,10 +236,12 @@
         <span id="view-sub">National Critical Infrastructure Analysis</span>
       </div>
       <div class="top-bar-right">
+        <div class="session-pill" id="session-pill">Guest Session</div>
         <div class="threat-level" id="threat-level-badge">
           <span class="pulse"></span> THREAT LEVEL: HIGH
         </div>
         <div class="timestamp" id="timestamp"></div>
+        <button id="btn-logout" class="logout-btn hidden">LOGOUT</button>
       </div>
     </header>
 
@@ -487,6 +497,8 @@
           <button class="qq-btn" data-q="How does loss of CDSL affect India's economy?">CDSL Impact</button>
         </div>
       </div>
+    </div>
+
     <!-- PERSONAL PORTFOLIO VIEW -->
     <div id="view-portfolio" class="view">
       <div class="portfolio-layout">
@@ -516,6 +528,18 @@
                     <input type="number" id="port-qty" placeholder="0.00">
                   </div>
                 </div>
+                <div class="input-row input-row-single">
+                  <div class="input-group">
+                    <label>BUY DATE</label>
+                    <input type="date" id="port-buy-date">
+                  </div>
+                </div>
+                <div class="input-row input-row-single">
+                  <div class="input-group">
+                    <label>BUY PRICE (₹)</label>
+                    <input type="number" id="port-buy-price" placeholder="e.g. 1850">
+                  </div>
+                </div>
                 <button id="btn-add-to-port" class="cyber-btn primary-small">▸ ADD TO PORTFOLIO</button>
               </div>
             </div>
@@ -533,6 +557,7 @@
                       <th>ASSET</th>
                       <th>QUANTITY</th>
                       <th>BUY PRICE</th>
+                      <th>BUY DATE</th>
                       <th>LIVE PRICE</th>
                       <th>VALUATION</th>
                       <th>ACTION</th>
@@ -677,6 +702,7 @@
     (function() {
       // STATE
       var isSignup = false;
+      var authInFlight = false;
 
       // SELECTORS
       var splash3 = document.getElementById('splash-3');
@@ -687,43 +713,181 @@
       var btnGoogle = document.getElementById('btn-google-auth');
       var btnBypass = document.getElementById('btn-bypass');
       var onboardingBody = document.getElementById('onboarding-rows');
+      var authStatus = document.getElementById('auth-status');
+      var authModeBanner = document.getElementById('auth-mode-banner');
+      var authSubtitle = document.getElementById('auth-subtitle');
+      var nameGroup = document.getElementById('name-group');
+      var onboardingCompanies = [];
+      var authInputs = [
+        document.getElementById('auth-email'),
+        document.getElementById('auth-pass'),
+        document.getElementById('auth-name')
+      ];
 
-      // UI HELPERS
-      window.toggleAuth = function(mode) {
+      function hideIntroSplashes() {
+        ['splash-1', 'splash-2', 'splash-3'].forEach(function(id) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          el.classList.remove('active', 'fade-out');
+          el.style.display = 'none';
+        });
+      }
+
+      function setAuthStatus(message, kind) {
+        if (!authStatus) return;
+        if (!message) {
+          authStatus.classList.add('hidden');
+          authStatus.textContent = '';
+          authStatus.dataset.kind = '';
+          return;
+        }
+        authStatus.textContent = message;
+        authStatus.dataset.kind = kind || 'info';
+        authStatus.classList.remove('hidden');
+      }
+
+      function setAuthBusy(busy, label) {
+        authInFlight = busy;
+        [btnVerify, btnSignupConsole, btnGoogle, btnBypass].forEach(function(btn) {
+          if (btn) btn.disabled = busy;
+        });
+        if (btnVerify && !isSignup) btnVerify.textContent = busy ? (label || 'VERIFYING...') : '▸ LOGIN TO GRID';
+        if (btnSignupConsole && isSignup) btnSignupConsole.textContent = busy ? (label || 'REGISTERING...') : '▸ CREATE ACCOUNT';
+      }
+
+      function resetAuthFields() {
+        authInputs.forEach(function(input) {
+          if (input) input.classList.remove('field-error');
+        });
+      }
+
+      function markFieldError(input) {
+        if (input) input.classList.add('field-error');
+      }
+
+      async function parseAuthResponse(res) {
+        var contentType = res.headers.get('content-type') || '';
+        if (contentType.indexOf('application/json') !== -1) {
+          return await res.json();
+        }
+        return { detail: await res.text() };
+      }
+
+      async function ensureOnboardingCompanies() {
+        if (onboardingCompanies.length) return onboardingCompanies;
+        var res = await fetch('/api/companies');
+        var data = await parseAuthResponse(res);
+        onboardingCompanies = (data.companies || []).slice().sort(function(a, b) {
+          return a.name.localeCompare(b.name);
+        });
+        return onboardingCompanies;
+      }
+
+      function getOnboardingSelectOptions() {
+        return onboardingCompanies.map(function(company) {
+          return '<option value="' + company.ticker + '" data-name="' + company.name + '" data-sector="' + company.sector + '">' +
+            company.name + ' (' + company.ticker + ')' +
+          '</option>';
+        }).join('');
+      }
+
+      function syncTickerPreview(row) {
+        var select = row.querySelector('.onboard-company');
+        var tickerPreview = row.querySelector('.onboard-ticker-preview');
+        if (!select || !tickerPreview) return;
+        tickerPreview.textContent = select.value || '—';
+      }
+
+      function updateAccessVisibility() {
+        var portfolioNav = document.querySelector('.nav-item[data-view="portfolio"]');
+        var loggedIn = !!localStorage.getItem('sentinel_token');
+        if (portfolioNav) {
+          portfolioNav.classList.toggle('hidden', !loggedIn);
+        }
+      }
+
+      function setAuthMode(mode) {
         isSignup = (mode === 'signup');
         document.getElementById('tab-login').classList.toggle('active', !isSignup);
         document.getElementById('tab-signup').classList.toggle('active', isSignup);
-        
-        // In the new console layout, we keep both buttons but can highlight the active one
-        btnVerify.style.opacity = isSignup ? '0.5' : '1';
-        btnSignupConsole.style.opacity = isSignup ? '1' : '0.5';
-        
+        btnVerify.classList.toggle('hidden', isSignup);
+        btnSignupConsole.classList.toggle('hidden', !isSignup);
+        nameGroup.classList.toggle('hidden', !isSignup);
+        authSubtitle.innerText = isSignup ? 'Register clearance before entering the strategic grid' : 'Validated clearance required';
         document.getElementById('auth-title').innerText = isSignup ? 'NEW CLEARANCE REGISTRATION' : 'STRATEGIC ACCESS CONSOLE';
+        authModeBanner.innerText = isSignup
+          ? 'Create your operator identity first. Your codename is used in the personal advisor and onboarding flow.'
+          : 'Existing operative access. Use your registered credentials to enter the grid.';
+        document.getElementById('auth-pass').placeholder = isSignup ? 'Create a secure passkey' : '••••••••';
+        setAuthStatus('');
+        resetAuthFields();
+      }
+
+      // UI HELPERS
+      window.toggleAuth = function(mode) {
+        setAuthMode(mode);
       };
 
       // AUTH ACTIONS
       async function handleAuth(signupMode) {
+        if (authInFlight) return;
         var email = document.getElementById('auth-email').value;
         var pass = document.getElementById('auth-pass').value;
         var name = document.getElementById('auth-name').value;
-        
-        if (!email || !pass) { alert('System requires full credentials.'); return; }
+        resetAuthFields();
+        setAuthStatus('');
+
+        if (!email) {
+          markFieldError(document.getElementById('auth-email'));
+          setAuthStatus('Strategic email is required.', 'error');
+          return;
+        }
+
+        if (!pass) {
+          markFieldError(document.getElementById('auth-pass'));
+          setAuthStatus('Security passkey is required.', 'error');
+          return;
+        }
+
+        if (signupMode && !name.trim()) {
+          markFieldError(document.getElementById('auth-name'));
+          setAuthStatus('Full name or codename is required for signup.', 'error');
+          return;
+        }
 
         var url = signupMode ? '/api/auth/signup' : '/api/auth/login';
         var headers = { 'Content-Type': signupMode ? 'application/json' : 'application/x-www-form-urlencoded' };
         var body = signupMode ? 
-          JSON.stringify({ email: email, password: pass, full_name: name || 'Agent' }) :
+          JSON.stringify({ email: email.trim(), password: pass, full_name: name.trim() }) :
           new URLSearchParams({ username: email, password: pass });
 
         try {
+          setAuthBusy(true, signupMode ? 'REGISTERING...' : 'VERIFYING...');
           var res = await fetch(url, { method: 'POST', headers: headers, body: body });
-          var data = await res.json();
+          var data = await parseAuthResponse(res);
           if (data.access_token) {
             localStorage.setItem('sentinel_token', data.access_token);
             localStorage.removeItem('sentinel_guest');
-            showOnboarding(name || email.split('@')[0]);
-          } else { alert(data.detail || 'Access Denied.'); }
-        } catch (e) { alert('Uplink failure.'); }
+            localStorage.setItem('sentinel_user_name', (name || email.split('@')[0]).trim());
+            setAuthStatus(signupMode ? 'Clearance created. Initializing onboarding...' : 'Identity verified. Initializing onboarding...', 'success');
+            if (signupMode) {
+              localStorage.removeItem('sentinel_onboarding_complete');
+              showOnboarding((name || email.split('@')[0]).trim());
+            } else {
+              if (localStorage.getItem('sentinel_onboarding_complete') === 'true') {
+                enterMainApp();
+              } else {
+                showOnboarding((name || email.split('@')[0]).trim());
+              }
+            }
+          } else {
+            setAuthStatus(data.detail || 'Access denied.', 'error');
+          }
+        } catch (e) {
+          setAuthStatus('Uplink failure. Please retry in a few seconds.', 'error');
+        } finally {
+          setAuthBusy(false);
+        }
       }
 
       btnVerify.addEventListener('click', function() { handleAuth(false); });
@@ -733,6 +897,11 @@
 
       if (btnGoogle) {
           btnGoogle.addEventListener('click', function() {
+            if (authInFlight) return;
+            if (btnGoogle.disabled) {
+              setAuthStatus('Google sign-in is not configured on this system yet.', 'info');
+              return;
+            }
             window.location.href = '/api/auth/google/login'; 
           });
       }
@@ -740,12 +909,22 @@
       btnBypass.addEventListener('click', function() {
         localStorage.setItem('sentinel_guest', 'true');
         localStorage.removeItem('sentinel_token');
-        showOnboarding('Guest');
+        localStorage.removeItem('sentinel_onboarding_complete');
+        localStorage.setItem('sentinel_user_name', 'Guest');
+        enterMainApp();
       });
 
       // ONBOARDING LOGIC
-      function showOnboarding(name) {
+      async function showOnboarding(name) {
+        hideIntroSplashes();
         document.getElementById('welcome-msg').innerText = 'WELCOME, ' + name.toUpperCase();
+        onboardingBody.innerHTML = '';
+        try {
+          await ensureOnboardingCompanies();
+        } catch (err) {
+          setAuthStatus('Failed to load tracked companies for onboarding.', 'error');
+          return;
+        }
         if (splash3) {
             splash3.classList.remove('active');
             splash3.classList.add('fade-out');
@@ -757,17 +936,25 @@
               splash4.classList.remove('hidden');
               splash4.style.display = 'flex'; // Force display flex for splash screen
               setTimeout(() => splash4.classList.add('active'), 10);
-              addOnboardingRow(); 
+              addOnboardingRow();
           }
         }, 1200);
       }
 
       window.addOnboardingRow = function() {
         var tr = document.createElement('tr');
-        tr.innerHTML = '<td><input type="text" placeholder="e.g. RELIANCE.NS" class="onboard-ticker"></td>' +
+        tr.innerHTML = '<td><select class="onboard-company"><option value="">Select company</option>' + getOnboardingSelectOptions() + '</select></td>' +
+                     '<td class="onboard-ticker-preview">—</td>' +
                      '<td><input type="number" placeholder="10" class="onboard-qty"></td>' +
                      '<td><input type="number" placeholder="2500" class="onboard-price"></td>' +
+                     '<td><input type="date" class="onboard-date"></td>' +
                      '<td><button class="remove-row" onclick="this.parentElement.parentElement.remove()">✕</button></td>';
+        var select = tr.querySelector('.onboard-company');
+        if (select) {
+          select.addEventListener('change', function() {
+            syncTickerPreview(tr);
+          });
+        }
         onboardingBody.appendChild(tr);
       };
 
@@ -775,11 +962,17 @@
         var rows = document.querySelectorAll('#onboarding-rows tr');
         var items = [];
         rows.forEach(function(r) {
-          var ticker = r.querySelector('.onboard-ticker').value;
+          var ticker = r.querySelector('.onboard-company').value;
           var qty = r.querySelector('.onboard-qty').value;
           var price = r.querySelector('.onboard-price').value;
+          var buyDate = r.querySelector('.onboard-date').value;
           if (ticker && qty) {
-            items.push({ ticker: ticker, quantity: parseFloat(qty), purchase_price: parseFloat(price) || 0 });
+            items.push({
+              ticker: ticker,
+              quantity: parseFloat(qty),
+              purchase_price: parseFloat(price) || 0,
+              purchase_date: buyDate || null
+            });
           }
         });
 
@@ -793,12 +986,17 @@
             body: JSON.stringify(items)
           });
         }
+        localStorage.setItem('sentinel_onboarding_complete', 'true');
         enterMainApp();
       });
 
-      document.getElementById('btn-skip-onboarding').addEventListener('click', enterMainApp);
+      document.getElementById('btn-skip-onboarding').addEventListener('click', function() {
+        localStorage.setItem('sentinel_onboarding_complete', 'true');
+        enterMainApp();
+      });
 
       function enterMainApp() {
+        hideIntroSplashes();
         if (splash4) {
             splash4.classList.remove('active');
             splash4.classList.add('fade-out');
@@ -810,6 +1008,8 @@
               mainApp.style.opacity = '1'; // Ensure visible
           }
           document.body.classList.remove('splash-active');
+          updateSessionUI();
+          updateAccessVisibility();
           
           // Trigger the app initialization and initial view
           if (window.SENTINEL_INIT) {
@@ -821,6 +1021,95 @@
           }
         }, 1200);
       }
+
+      async function restoreExistingSession() {
+        var params = new URLSearchParams(window.location.search);
+        var queryToken = params.get('auth_token');
+        var queryName = params.get('auth_name');
+
+        if (!queryToken) {
+          return;
+        }
+
+        localStorage.setItem('sentinel_token', queryToken);
+        localStorage.removeItem('sentinel_guest');
+        if (queryName) localStorage.setItem('sentinel_user_name', queryName);
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        try {
+          var res = await fetch('/api/auth/me', {
+            headers: { 'Authorization': 'Bearer ' + queryToken }
+          });
+
+          if (!res.ok) throw new Error('Session expired');
+          var profile = await res.json();
+          localStorage.setItem('sentinel_user_name', profile.full_name || profile.email);
+          showOnboarding(profile.full_name || profile.email.split('@')[0]);
+        } catch (err) {
+          localStorage.removeItem('sentinel_token');
+          localStorage.removeItem('sentinel_user_name');
+          localStorage.removeItem('sentinel_onboarding_complete');
+          setAuthStatus('Google sign-in expired. Log in again to continue.', 'error');
+        }
+      }
+
+      async function syncGoogleAuthState() {
+        if (!btnGoogle) return;
+        try {
+          var res = await fetch('/api/auth/google/status');
+          var data = await parseAuthResponse(res);
+          if (!res.ok || !data.enabled) {
+            btnGoogle.disabled = true;
+            btnGoogle.title = 'Google sign-in is not configured yet';
+          }
+        } catch (err) {
+          btnGoogle.disabled = true;
+          btnGoogle.title = 'Google sign-in is unavailable right now';
+        }
+      }
+
+      function updateSessionUI() {
+        var logoutBtn = document.getElementById('btn-logout');
+        var sessionPill = document.getElementById('session-pill');
+        var userName = localStorage.getItem('sentinel_user_name') || 'Guest';
+        var loggedIn = !!localStorage.getItem('sentinel_token');
+        if (sessionPill) {
+          sessionPill.textContent = loggedIn ? ('Agent: ' + userName) : 'Guest Session';
+        }
+        if (logoutBtn) {
+          logoutBtn.classList.toggle('hidden', !loggedIn && !localStorage.getItem('sentinel_guest'));
+        }
+        updateAccessVisibility();
+      }
+
+      var logoutBtn = document.getElementById('btn-logout');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+          localStorage.removeItem('sentinel_token');
+          localStorage.removeItem('sentinel_guest');
+          localStorage.removeItem('sentinel_user_name');
+          localStorage.removeItem('sentinel_onboarding_complete');
+          window.location.href = '/';
+        });
+      }
+
+      authInputs.forEach(function(input) {
+        if (!input) return;
+        input.addEventListener('keydown', function(event) {
+          if (event.key === 'Enter') handleAuth(isSignup);
+        });
+        input.addEventListener('input', function() {
+          input.classList.remove('field-error');
+          if (authStatus && authStatus.dataset.kind === 'error') {
+            setAuthStatus('');
+          }
+        });
+      });
+
+      setAuthMode('login');
+      updateSessionUI();
+      syncGoogleAuthState();
+      restoreExistingSession();
     })();
   })();
   </script>

@@ -29,10 +29,18 @@ function isGuest() {
   return localStorage.getItem('sentinel_guest') === 'true' && !localStorage.getItem('sentinel_token');
 }
 
+function updatePortfolioAccess() {
+  const portfolioNav = document.querySelector('.nav-item[data-view="portfolio"]');
+  if (portfolioNav) {
+    portfolioNav.classList.toggle('hidden', isGuest());
+  }
+}
+
 // Initialize
 async function init() {
   updateTime();
   setInterval(updateTime, 1000);
+  updatePortfolioAccess();
   
   // Navigation
   navItems.forEach(item => {
@@ -85,6 +93,7 @@ async function init() {
 async function initPortfolio() {
   const container = document.getElementById('view-portfolio');
   const authStatus = document.getElementById('portfolio-auth-status');
+  if (!container || !authStatus) return;
   
   if (isGuest()) {
     authStatus.innerHTML = '<span class="pulse-dot" style="background:#f59e0b; box-shadow:0 0 10px #f59e0b"></span> GUEST ACCESS (ADVISORY RESTRICTED)';
@@ -96,6 +105,11 @@ async function initPortfolio() {
     return;
   }
 
+  authStatus.innerHTML = '<span class="pulse-dot"></span> SECURE UPLINK ACTIVE';
+  authStatus.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+  authStatus.style.color = '#10b981';
+  document.getElementById('btn-add-to-port').disabled = false;
+  document.getElementById('btn-run-advisor').disabled = false;
   fetchHoldings();
 }
 
@@ -136,6 +150,7 @@ async function renderHoldings(items) {
         <td><strong>${item.ticker}</strong></td>
         <td>${item.quantity}</td>
         <td>₹${item.purchase_price || '---'}</td>
+        <td>${item.purchase_date || '---'}</td>
         <td>${price}</td>
         <td class="valuation-cell">${val}</td>
         <td><button class="delete-btn" onclick="removeFromPortfolio('${item.ticker}')">🗑</button></td>
@@ -156,17 +171,26 @@ window.removeFromPortfolio = async (ticker) => {
 document.getElementById('btn-add-to-port')?.addEventListener('click', async () => {
   const ticker = document.getElementById('port-ticker').value.toUpperCase();
   const qty = parseFloat(document.getElementById('port-qty').value);
+  const buyPrice = parseFloat(document.getElementById('port-buy-price').value);
+  const buyDate = document.getElementById('port-buy-date').value;
   if (!ticker || isNaN(qty)) { alert('Invalid asset markers'); return; }
 
   try {
     const res = await fetch('/api/portfolio', {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ ticker: ticker, quantity: qty })
+      body: JSON.stringify({
+        ticker: ticker,
+        quantity: qty,
+        purchase_price: Number.isNaN(buyPrice) ? null : buyPrice,
+        purchase_date: buyDate || null
+      })
     });
     if (res.ok) {
       document.getElementById('port-ticker').value = '';
       document.getElementById('port-qty').value = '';
+      document.getElementById('port-buy-price').value = '';
+      document.getElementById('port-buy-date').value = '';
       fetchHoldings();
     }
   } catch (e) { alert(e); }
@@ -210,6 +234,9 @@ document.getElementById('btn-run-advisor')?.addEventListener('click', async () =
 });
 
 function switchView(viewId) {
+  if (viewId === 'portfolio' && isGuest()) {
+    return;
+  }
   navItems.forEach(n => n.classList.remove('active'));
   const navItem = document.querySelector(`.nav-item[data-view="${viewId}"]`);
   if (navItem) navItem.classList.add('active');

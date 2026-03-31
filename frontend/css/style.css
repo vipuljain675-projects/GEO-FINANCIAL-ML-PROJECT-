@@ -1418,8 +1418,8 @@ body.splash-active {
 
 /* ---- Portfolio View design ---- */
 .portfolio-layout {
-  display: grid;
-  grid-template-columns: 1fr 360px;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
   padding: 24px;
   height: 100%;
@@ -1430,6 +1430,63 @@ body.splash-active {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.portfolio-workspace {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 360px;
+  gap: 24px;
+  align-items: start;
+}
+
+.portfolio-identity,
+.portfolio-scanner {
+  min-width: 0;
+}
+
+.portfolio-bot-row {
+  width: 100%;
+}
+
+.advisor-identity-card,
+.scanner-card,
+.portfolio-chat-card {
+  height: auto;
+}
+
+.advisor-side-copy {
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.identity-stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.identity-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+}
+
+.identity-label {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.identity-value {
+  color: #e5e7eb;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .view-header,
@@ -1558,7 +1615,7 @@ body.splash-active {
 
 .decision-card-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-top: 16px;
 }
@@ -1715,8 +1772,14 @@ body.splash-active {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  position: sticky;
-  top: 0;
+  overflow: hidden;
+}
+
+.scanner-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .advisor-icon {
@@ -1740,6 +1803,8 @@ body.splash-active {
   margin-top: 24px;
   padding-top: 24px;
   border-top: 1px solid rgba(255,255,255,0.1);
+  max-height: 720px;
+  overflow-y: auto;
 }
 
 .advisor-loading {
@@ -1769,12 +1834,30 @@ body.splash-active {
 .advisor-text {
   font-family: var(--font-mono);
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.85;
   color: #c7d2fe;
+  max-width: 100%;
+}
+
+.advisor-text h1,
+.advisor-text h2,
+.advisor-text h3,
+.advisor-text strong {
+  color: #f8fafc;
+}
+
+.advisor-text p,
+.advisor-text ul,
+.advisor-text ol {
+  margin-bottom: 14px;
+}
+
+.advisor-text li {
+  margin-bottom: 8px;
 }
 
 .portfolio-chat-card {
-  margin-top: 18px;
+  width: 100%;
 }
 
 .portfolio-chat-quick {
@@ -1795,7 +1878,8 @@ body.splash-active {
 }
 
 .portfolio-chat-messages {
-  max-height: 360px;
+  min-height: 280px;
+  max-height: 420px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -1838,7 +1922,7 @@ body.splash-active {
 }
 
 @media (max-width: 1100px) {
-  .portfolio-layout {
+  .portfolio-workspace {
     grid-template-columns: 1fr;
   }
 
@@ -1848,7 +1932,7 @@ body.splash-active {
   }
 
   .advisor-card {
-    position: static;
+    max-height: none;
   }
 }
 

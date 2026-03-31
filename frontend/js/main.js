@@ -37,6 +37,21 @@ function updatePortfolioAccess() {
   }
 }
 
+function populatePortfolioTickerSelect() {
+  const sel = document.getElementById('port-ticker');
+  if (!sel || !globalData.companies) return;
+  const currentValue = sel.value;
+  const sorted = [...globalData.companies].sort((a, b) => a.name.localeCompare(b.name));
+  sel.innerHTML = '<option value="">— Select tracked company —</option>';
+  sorted.forEach(company => {
+    const opt = document.createElement('option');
+    opt.value = company.ticker;
+    opt.textContent = `${company.name} (${company.ticker})`;
+    sel.appendChild(opt);
+  });
+  if (currentValue) sel.value = currentValue;
+}
+
 // Initialize
 async function init() {
   updateTime();
@@ -82,6 +97,7 @@ async function init() {
 
     populateOverview();
     populateSimSelect();
+    populatePortfolioTickerSelect();
 
   } catch (err) {
     console.error(err);
@@ -94,7 +110,11 @@ async function init() {
 async function initPortfolio() {
   const container = document.getElementById('view-portfolio');
   const authStatus = document.getElementById('portfolio-auth-status');
+  const portfolioUserName = document.getElementById('portfolio-user-name');
   if (!container || !authStatus) return;
+  if (portfolioUserName) {
+    portfolioUserName.textContent = localStorage.getItem('sentinel_user_name') || 'Guest';
+  }
   
   if (isGuest()) {
     authStatus.innerHTML = '<span class="pulse-dot" style="background:#f59e0b; box-shadow:0 0 10px #f59e0b"></span> GUEST ACCESS (ADVISORY RESTRICTED)';
@@ -283,7 +303,7 @@ window.removeFromPortfolio = async (ticker) => {
 };
 
 document.getElementById('btn-add-to-port')?.addEventListener('click', async () => {
-  const ticker = document.getElementById('port-ticker').value.toUpperCase();
+  const ticker = document.getElementById('port-ticker').value;
   const qty = parseFloat(document.getElementById('port-qty').value);
   const buyPrice = parseFloat(document.getElementById('port-buy-price').value);
   const buyDate = document.getElementById('port-buy-date').value;

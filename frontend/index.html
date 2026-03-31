@@ -502,18 +502,42 @@
     <!-- PERSONAL PORTFOLIO VIEW -->
     <div id="view-portfolio" class="view">
       <div class="portfolio-layout">
-        <div class="portfolio-main">
-          <div class="view-header">
-            <div>
-              <h1 class="view-title">PERSONAL WEALTH PROTECTION</h1>
-              <p class="view-subtitle">Individualized Intelligence & Asset Risk Analysis</p>
-            </div>
-            <div class="auth-status-chip" id="portfolio-auth-status">
-              <span class="pulse-dot"></span> SECURE UPLINK ACTIVE
-            </div>
+        <div class="view-header">
+          <div>
+            <h1 class="view-title">PERSONAL WEALTH PROTECTION</h1>
+            <p class="view-subtitle">Individualized Intelligence & Asset Risk Analysis</p>
           </div>
+          <div class="auth-status-chip" id="portfolio-auth-status">
+            <span class="pulse-dot"></span> SECURE UPLINK ACTIVE
+          </div>
+        </div>
 
-          <div class="portfolio-dashboard">
+        <div class="portfolio-workspace">
+          <aside class="portfolio-identity">
+            <div class="portfolio-card advisor-identity-card">
+              <div class="advisor-header">
+                <div class="advisor-icon">◈</div>
+                <h3>PERSONAL ADVISOR</h3>
+              </div>
+              <p class="advisor-side-copy">Your private portfolio intelligence desk. Track positions, scan risks, and ask targeted follow-up questions without leaving this workspace.</p>
+              <div class="identity-stat-list">
+                <div class="identity-stat">
+                  <span class="identity-label">User</span>
+                  <span class="identity-value" id="portfolio-user-name">—</span>
+                </div>
+                <div class="identity-stat">
+                  <span class="identity-label">Mode</span>
+                  <span class="identity-value">Strategic Personal Advisor</span>
+                </div>
+                <div class="identity-stat">
+                  <span class="identity-label">Flow</span>
+                  <span class="identity-value">Portfolio -> Scanner -> AI Bot</span>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <section class="portfolio-main">
             <div class="portfolio-summary-grid" id="portfolio-summary-grid">
               <div class="summary-tile">
                 <span class="summary-label">Total Invested</span>
@@ -540,7 +564,9 @@
                 <div class="input-row">
                   <div class="input-group">
                     <label>EQUITY TICKER (NSE)</label>
-                    <input type="text" id="port-ticker" placeholder="e.g. BDL.NS">
+                    <select id="port-ticker">
+                      <option value="">— Select tracked company —</option>
+                    </select>
                   </div>
                   <div class="input-group">
                     <label>QUANTITY (UNITS)</label>
@@ -598,32 +624,38 @@
                 <div class="loading">Run the portfolio scan to generate action cards.</div>
               </div>
             </div>
-          </div>
+          </section>
+
+          <aside class="portfolio-scanner">
+            <div class="advisor-card scanner-card">
+              <div class="scanner-topline">
+                <span class="summary-label">Scanner</span>
+                <span class="panel-tag">AI reads the portfolio</span>
+              </div>
+              <div class="advisor-header">
+                <div class="advisor-icon">◎</div>
+                <h3>PORTFOLIO SCANNER</h3>
+              </div>
+              <p class="advisor-side-copy">Run a concentrated scan to generate the verdict, the key risks, and the next moves for your current holdings.</p>
+              <button id="btn-run-advisor" class="cyber-btn advisor-btn">▸ RUN PORTFOLIO RISK SCAN</button>
+              <div id="advisor-result-container" class="advisor-results hidden">
+                <div class="advisor-loading">
+                  <div class="spinner"></div>
+                  <span>Scanning Geopolitical Correlations...</span>
+                </div>
+                <div id="advisor-text" class="advisor-text"></div>
+              </div>
+            </div>
+          </aside>
         </div>
 
-        <!-- AI Advisor Sidebar -->
-        <div class="portfolio-sidebar">
-          <div class="advisor-card">
-            <div class="advisor-header">
-              <div class="advisor-icon">◈</div>
-              <h3>PERSONAL AI ADVISOR</h3>
-            </div>
-            <p>Runs a specialized SENTINEL scan against your specific portfolio markers.</p>
-            <button id="btn-run-advisor" class="cyber-btn advisor-btn">▸ RUN PORTFOLIO RISK SCAN</button>
-            <div id="advisor-result-container" class="advisor-results hidden">
-              <div class="advisor-loading">
-                <div class="spinner"></div>
-                <span>Scanning Geopolitical Correlations...</span>
-              </div>
-              <div id="advisor-text" class="advisor-text"></div>
-            </div>
-          </div>
-
+        <div class="portfolio-bot-row">
           <div class="advisor-card portfolio-chat-card">
             <div class="advisor-header">
-              <div class="advisor-icon">◎</div>
+              <div class="advisor-icon">◉</div>
               <h3>ASK YOUR PORTFOLIO</h3>
             </div>
+            <p class="advisor-side-copy">Use the AI bot after the scan for follow-ups, scenario checks, and stock-specific decisions. This stays separate from the scanner so content does not collide.</p>
             <div class="portfolio-chat-quick">
               <button class="portfolio-chat-prompt" data-prompt="Which holding is my biggest risk right now?">Biggest risk?</button>
               <button class="portfolio-chat-prompt" data-prompt="Should I hold or reduce my worst performer?">Worst performer?</button>

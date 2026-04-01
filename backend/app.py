@@ -406,8 +406,14 @@ def analyze_personal(current_user=Depends(get_current_user), db=Depends(database
             "response": "Your portfolio is empty. Add assets during onboarding or in the dashboard to trigger analysis."
         }
 
+    live_context = rag_context.build_context(
+        "latest developments affecting this portfolio",
+        db=db,
+        portfolio_holdings=intelligence["holdings"],
+    )
     prompt = (
         f"You are the Strategic Shield personal portfolio advisor. Analyze {current_user['full_name']}'s holdings.\n\n"
+        f"{live_context}\n\n"
         f"Portfolio Snapshot:\n{intelligence['narrative_prompt']}\n\n"
         "Write a concise portfolio verdict with exactly these sections:\n"
         "1. PORTFOLIO VERDICT\n"
@@ -429,6 +435,7 @@ def chat_personal(body: PortfolioChatRequest, current_user=Depends(get_current_u
     if not intelligence["holdings"]:
         return {"response": "Your portfolio is empty. Add holdings first, then ask me portfolio questions."}
 
+    live_context = rag_context.build_context(body.message, db=db, portfolio_holdings=intelligence["holdings"])
     tracked_companies = load_data().get("companies", [])
     tracked_universe = "\n".join(
         f"- {company['ticker']}: {company['name']} | sector={company.get('sector', 'unknown')} | role={company.get('role', 'unknown')}"
@@ -438,6 +445,7 @@ def chat_personal(body: PortfolioChatRequest, current_user=Depends(get_current_u
 
     prompt = (
         f"You are the personal portfolio copilot for {current_user['full_name']}.\n"
+        f"{live_context}\n\n"
         f"Use this live portfolio context:\n{intelligence['narrative_prompt']}\n\n"
         f"Current holdings tickers: {held_tickers}\n\n"
         f"Tracked universe available for recommendations:\n{tracked_universe}\n\n"
@@ -569,9 +577,9 @@ class ChatMessage(BaseModel):
     history: Optional[List[dict]] = []
 
 @app.post("/api/chat")
-def chat_endpoint(body: ChatMessage):
-    context = rag_context.build_context(body.message)
-    augmented_message = f"{context}{body.message}" if context else body.message
+def chat_endpoint(body: ChatMessage, db=Depends(database.get_db)):
+    context = rag_context.build_context(body.message, db=db)
+    augmented_message = f"{context}\n\nUser question: {body.message}" if context else body.message
     response = llm.chat(augmented_message, body.history)
     return {"response": response}
 

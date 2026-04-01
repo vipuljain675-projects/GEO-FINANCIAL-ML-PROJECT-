@@ -1,111 +1,180 @@
 """
-RAG Context Builder for SENTINEL Chat
-- Detects company mentions → injects REAL live yfinance prices
-- Searches NewsAPI for current headlines on ANY topic in query
-SENTINEL is grounded in today's actual world, not just training data.
+Autonomous live context for SENTINEL.
+
+- Pulls fresh market snapshots for mentioned or held companies
+- Pulls fresh NewsAPI + GDELT events on-demand
+- Caches fetched event payloads in Mongo so the assistant builds short-term memory
+- Injects a structured "live event memory" block into prompts
 """
+import hashlib
+import json
 import math
 import os
+import re
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
 import requests
-from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
 NEWSAPI_KEY = os.getenv("NEWSAPI_KEY", "")
 
-# ─── Company Map ──────────────────────────────────────────────────────────────
-COMPANY_MAP = {
-    "adani port": ("Adani Ports", "ADANIPORTS.NS", "logistics"),
-    "adaniports": ("Adani Ports", "ADANIPORTS.NS", "logistics"),
-    "adani enterprise": ("Adani Enterprises", "ADANIENT.NS", "logistics"),
-    "adanient": ("Adani Enterprises", "ADANIENT.NS", "logistics"),
-    "adani green": ("Adani Green Energy", "ADANIGREEN.NS", "energy"),
-    "adani power": ("Adani Power", "ADANIPOWER.NS", "energy"),
-    "adani": ("Adani Enterprises", "ADANIENT.NS", "logistics"),
-    "hal": ("HAL", "HAL.NS", "defense"),
-    "hindustan aeronautics": ("HAL", "HAL.NS", "defense"),
-    "bel": ("BEL", "BEL.NS", "defense"),
-    "bharat electronics": ("BEL", "BEL.NS", "defense"),
-    "bdl": ("BDL", "BDL.NS", "defense"),
-    "mazagon": ("Mazagon Dock", "MAZDOCK.NS", "defense"),
-    "mazdock": ("Mazagon Dock", "MAZDOCK.NS", "defense"),
-    "grse": ("GRSE", "GRSE.NS", "defense"),
-    "cochin ship": ("Cochin Shipyard", "COCHINSHIP.NS", "defense"),
-    "larsen": ("L&T", "LT.NS", "defense"),
-    "l&t": ("L&T", "LT.NS", "defense"),
-    "bharat forge": ("Bharat Forge", "BHARATFORG.NS", "defense"),
-    "solar industries": ("Solar Industries", "SOLARINDS.NS", "defense"),
-    "reliance": ("Reliance Industries", "RELIANCE.NS", "energy"),
-    "ongc": ("ONGC", "ONGC.NS", "energy"),
-    "ioc": ("Indian Oil", "IOC.NS", "energy"),
-    "indian oil": ("Indian Oil", "IOC.NS", "energy"),
-    "bpcl": ("BPCL", "BPCL.NS", "energy"),
-    "gail": ("GAIL", "GAIL.NS", "energy"),
-    "ntpc": ("NTPC", "NTPC.NS", "energy"),
-    "power grid": ("Power Grid", "POWERGRID.NS", "energy"),
-    "coal india": ("Coal India", "COALINDIA.NS", "energy"),
-    "tata steel": ("Tata Steel", "TATASTEEL.NS", "energy"),
-    "jsw steel": ("JSW Steel", "JSWSTEEL.NS", "energy"),
-    "hindalco": ("Hindalco", "HINDALCO.NS", "energy"),
-    "sbi": ("State Bank of India", "SBIN.NS", "finance"),
-    "state bank": ("State Bank of India", "SBIN.NS", "finance"),
-    "hdfc": ("HDFC Bank", "HDFCBANK.NS", "finance"),
-    "icici": ("ICICI Bank", "ICICIBANK.NS", "finance"),
-    "axis bank": ("Axis Bank", "AXISBANK.NS", "finance"),
-    "tcs": ("TCS", "TCS.NS", "finance"),
-    "infosys": ("Infosys", "INFY.NS", "finance"),
-    "hcltech": ("HCL Tech", "HCLTECH.NS", "finance"),
-    "hcl tech": ("HCL Tech", "HCLTECH.NS", "finance"),
-    "paytm": ("Paytm", "PAYTM.NS", "finance"),
-    "airtel": ("Bharti Airtel", "BHARTIARTL.NS", "finance"),
-    "concor": ("CONCOR", "CONCOR.NS", "logistics"),
-    "rvnl": ("RVNL", "RVNL.NS", "logistics"),
-    "tata motors": ("Tata Motors", "TATAMOTORS.NS", "logistics"),
-    "siemens": ("Siemens India", "SIEMENS.NS", "logistics"),
-    "abb": ("ABB India", "ABB.NS", "logistics"),
-    "indigo": ("IndiGo", "INDIGO.NS", "logistics"),
-    "sun pharma": ("Sun Pharma", "SUNPHARMA.NS", "logistics"),
-    "dlf": ("DLF", "DLF.NS", "logistics"),
+COMPANIES_PATH = Path(__file__).parent / "data" / "companies.json"
+COMPANIES = json.loads(COMPANIES_PATH.read_text()).get("companies", [])
+
+COMPANY_MAP = {}
+for company in COMPANIES:
+    ticker = company["ticker"].upper()
+    names = {
+        company["name"].lower(),
+        company.get("short", "").lower(),
+        ticker.lower(),
+        ticker.replace(".ns", "").lower(),
+        ticker.replace(".bo", "").lower(),
+    }
+    for name in names:
+        if name:
+            COMPANY_MAP[name] = (
+                company["name"],
+                ticker,
+                company.get("sector", "unknown"),
+                company.get("role", "unknown"),
+            )
+
+MACRO_KEYWORDS = [
+    "iran", "israel", "war", "ceasefire", "ukraine", "russia", "china", "pakistan",
+    "oil", "crude", "rbi", "fed", "inflation", "interest rate", "tariff", "sanction",
+    "budget", "sebi", "regulation", "market", "nifty", "sensex", "shipping",
+]
+
+SECTOR_QUERIES = {
+    "defense": "India defense procurement military border tensions",
+    "energy": "India oil crude LNG energy sanctions RBI inflation",
+    "finance": "India banks RBI rates liquidity regulation SEBI",
+    "logistics": "India ports shipping Red Sea supply chain freight",
 }
 
-# Geopolitical / macro keywords → will trigger news search even without company
-GEO_KEYWORDS = [
-    "iran", "israel", "war", "ukraine", "russia", "china", "pakistan",
-    "supply chain", "oil", "crude", "nse", "sensex", "rbi", "fed",
-    "interest rate", "recession", "inflation", "budget", "modi", "sebi",
-    "nifty", "stock market", "geopolit", "tariff", "sanction",
+EVENT_POSITIVE = [
+    "ceasefire", "truce", "approval", "cleared", "wins order", "order win",
+    "expansion", "rate cut", "de-escalation", "profit jumps", "surge", "record",
+]
+EVENT_NEGATIVE = [
+    "attack", "strike", "war", "sanction", "probe", "raid", "blockade", "tariff",
+    "downgrade", "disruption", "crash", "slump", "selloff", "missile", "conflict",
 ]
 
 
-def detect_companies(message: str) -> list:
-    msg = message.lower()
+def _now_utc():
+    return datetime.now(timezone.utc)
+
+
+def _cache_key(kind: str, query: str) -> str:
+    raw = f"{kind}:{query.strip().lower()}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _collection(db):
+    return None if db is None else db["live_event_cache"]
+
+
+def _get_cached_payload(db, kind: str, query: str, max_age_minutes: int = 20):
+    coll = _collection(db)
+    if coll is None:
+        return None
+    doc = coll.find_one({"cache_key": _cache_key(kind, query)})
+    if not doc:
+        return None
+    fetched_at = doc.get("fetched_at")
+    if not fetched_at or (_now_utc() - fetched_at) > timedelta(minutes=max_age_minutes):
+        return None
+    return doc.get("payload")
+
+
+def _store_cache(db, kind: str, query: str, payload):
+    coll = _collection(db)
+    if coll is None:
+        return
+    coll.update_one(
+        {"cache_key": _cache_key(kind, query)},
+        {
+            "$set": {
+                "cache_key": _cache_key(kind, query),
+                "kind": kind,
+                "query": query,
+                "payload": payload,
+                "fetched_at": _now_utc(),
+            }
+        },
+        upsert=True,
+    )
+
+
+def detect_companies(message: str, portfolio_holdings: list | None = None) -> list:
+    msg = (message or "").lower()
     found = {}
     for keyword, info in COMPANY_MAP.items():
-        if keyword in msg:
-            ticker = info[1]
-            if ticker not in found:
-                found[ticker] = info
+        if not keyword:
+            continue
+        if " " in keyword or "." in keyword:
+            matched = keyword in msg
+        else:
+            matched = re.search(rf"\b{re.escape(keyword)}\b", msg) is not None
+        if matched:
+            found[info[1]] = info
+    if portfolio_holdings:
+        for holding in portfolio_holdings:
+            ticker = (holding.get("ticker") or "").upper()
+            for company in COMPANIES:
+                if company["ticker"].upper() == ticker and ticker not in found:
+                    found[ticker] = (
+                        company["name"],
+                        ticker,
+                        company.get("sector", "unknown"),
+                        company.get("role", "unknown"),
+                    )
     return list(found.values())
 
 
-def build_search_query(message: str, companies: list) -> str:
-    msg = message.lower()
+def _extract_macro_hits(message: str) -> list:
+    msg = (message or "").lower()
+    return [kw for kw in MACRO_KEYWORDS if kw in msg]
+
+
+def _build_queries(message: str, companies: list, portfolio_holdings: list | None = None) -> list:
+    queries = []
     if companies:
-        names = [c[0] for c in companies[:2]]
-        query = " OR ".join(f'"{n}"' for n in names)
-        for kw in GEO_KEYWORDS:
-            if kw in msg:
-                query += f" {kw}"
-                break
-        return query
-    hits = [kw for kw in GEO_KEYWORDS if kw in msg]
-    if hits:
-        return " ".join(hits[:3]) + " India"
-    return " ".join(message.split()[:8])
+        for name, ticker, sector, _role in companies[:3]:
+            queries.append(f"\"{name}\" OR {ticker.replace('.NS', '').replace('.BO', '')} stock India")
+
+    sectors = []
+    if portfolio_holdings:
+        sectors.extend((holding.get("sector") or "").lower() for holding in portfolio_holdings if holding.get("sector"))
+    sectors.extend(company[2].lower() for company in companies if len(company) > 2)
+    for sector in list(dict.fromkeys(sectors))[:2]:
+        if sector in SECTOR_QUERIES:
+            queries.append(SECTOR_QUERIES[sector])
+
+    macro_hits = _extract_macro_hits(message)
+    if macro_hits:
+        queries.append(" ".join(macro_hits[:3]) + " India markets")
+    else:
+        queries.append("India markets RBI SEBI oil war ceasefire")
+
+    deduped = []
+    seen = set()
+    for query in queries:
+        key = query.lower().strip()
+        if key and key not in seen:
+            deduped.append(query)
+            seen.add(key)
+    return deduped[:4]
 
 
-def fetch_live_news(query: str, days: int = 7) -> list:
-    """Search NewsAPI for the latest headlines on the given query."""
+def fetch_live_news(query: str, days: int = 5, db=None) -> list:
+    cached = _get_cached_payload(db, "newsapi", query)
+    if cached is not None:
+        return cached
     if not NEWSAPI_KEY:
         return []
     try:
@@ -117,101 +186,166 @@ def fetch_live_news(query: str, days: int = 7) -> list:
                 "from": from_date,
                 "sortBy": "publishedAt",
                 "language": "en",
-                "pageSize": 8,
+                "pageSize": 6,
                 "apiKey": NEWSAPI_KEY,
             },
-            timeout=5,
+            timeout=6,
         )
         if resp.status_code != 200:
             return []
-        articles = resp.json().get("articles", [])
-        results = []
-        for a in articles:
-            title = (a.get("title") or "").strip()
-            source = (a.get("source") or {}).get("name", "")
-            pub = (a.get("publishedAt") or "")[:10]
-            if title and "[Removed]" not in title:
-                results.append({"title": title, "source": source, "date": pub})
-        return results
+        articles = []
+        for article in resp.json().get("articles", []):
+            title = (article.get("title") or "").strip()
+            if not title or "[Removed]" in title:
+                continue
+            articles.append(
+                {
+                    "title": title,
+                    "source": (article.get("source") or {}).get("name", ""),
+                    "date": (article.get("publishedAt") or "")[:10],
+                    "url": article.get("url", ""),
+                }
+            )
+        _store_cache(db, "newsapi", query, articles)
+        return articles
+    except Exception:
+        return []
+
+
+def fetch_gdelt_events(query: str, db=None) -> list:
+    cached = _get_cached_payload(db, "gdelt", query)
+    if cached is not None:
+        return cached
+    try:
+        resp = requests.get(
+            "https://api.gdeltproject.org/api/v2/doc/doc",
+            params={
+                "query": query,
+                "mode": "artlist",
+                "maxrecords": 6,
+                "format": "json",
+                "timespan": "3d",
+            },
+            timeout=6,
+        )
+        if resp.status_code != 200:
+            return []
+        items = []
+        for article in resp.json().get("articles", []):
+            title = (article.get("title") or "").strip()
+            if not title:
+                continue
+            items.append(
+                {
+                    "title": title,
+                    "source": article.get("domain", "GDELT"),
+                    "date": (article.get("seendate") or "")[:10],
+                    "url": article.get("url", ""),
+                }
+            )
+        _store_cache(db, "gdelt", query, items)
+        return items
     except Exception:
         return []
 
 
 def fetch_live_snapshot(ticker: str) -> dict | None:
-    """Fetches current price + 5-day trend from yfinance."""
     try:
         import yfinance as yf
+
         stock = yf.Ticker(ticker)
         end = datetime.now().strftime("%Y-%m-%d")
         start = (datetime.now() - timedelta(days=20)).strftime("%Y-%m-%d")
         hist = stock.history(start=start, end=end, interval="1d")
         if hist.empty:
             return None
-        closes = [round(float(v), 2) for v in hist["Close"]
-                  if math.isfinite(float(v)) and float(v) > 0]
-        dates = [d.strftime("%b %d") for d in hist.index][-len(closes):]
+        closes = [round(float(v), 2) for v in hist["Close"] if math.isfinite(float(v)) and float(v) > 0]
         if not closes:
             return None
         try:
             live = round(float(stock.fast_info.last_price), 2)
         except Exception:
             live = closes[-1]
-        try:
-            hi52 = round(float(stock.fast_info.year_high), 2)
-            lo52 = round(float(stock.fast_info.year_low), 2)
-        except Exception:
-            hi52 = max(closes)
-            lo52 = min(closes)
         pct_5d = round(((live - closes[-5]) / closes[-5]) * 100, 2) if len(closes) >= 5 else None
         return {
-            "live_price": live, "hi_52w": hi52, "lo_52w": lo52,
-            "pct_5d": pct_5d, "recent_closes": list(zip(dates[-5:], closes[-5:])),
+            "live_price": live,
+            "pct_5d": pct_5d,
+            "recent_closes": closes[-5:],
+            "hi_52w": round(float(stock.fast_info.year_high), 2) if getattr(stock, "fast_info", None) else max(closes),
+            "lo_52w": round(float(stock.fast_info.year_low), 2) if getattr(stock, "fast_info", None) else min(closes),
         }
     except Exception:
         return None
 
 
-def build_context(message: str) -> str:
-    """
-    Builds the full RAG block injected into every SENTINEL chat:
-    1. Live yfinance stock data (if company mentioned)
-    2. Real NewsAPI headlines from last 7 days (always)
-    """
-    companies = detect_companies(message)
+def _classify_event(title: str) -> str:
+    t = title.lower()
+    pos = sum(1 for kw in EVENT_POSITIVE if kw in t)
+    neg = sum(1 for kw in EVENT_NEGATIVE if kw in t)
+    if pos > neg:
+        return "positive"
+    if neg > pos:
+        return "negative"
+    return "neutral"
+
+
+def _build_event_memory(message: str, db=None, portfolio_holdings: list | None = None) -> str:
+    companies = detect_companies(message, portfolio_holdings)
+    queries = _build_queries(message, companies, portfolio_holdings)
+
+    seen_titles = set()
+    combined = []
+    for query in queries:
+        for article in fetch_live_news(query, db=db)[:4]:
+            title_key = article["title"].strip().lower()
+            if title_key not in seen_titles:
+                combined.append(article)
+                seen_titles.add(title_key)
+        for article in fetch_gdelt_events(query, db=db)[:3]:
+            title_key = article["title"].strip().lower()
+            if title_key not in seen_titles:
+                combined.append(article)
+                seen_titles.add(title_key)
+
+    if not combined:
+        return ""
+
+    combined = sorted(combined, key=lambda item: item.get("date", ""), reverse=True)[:10]
+    lines = ["╔══ AUTONOMOUS LIVE EVENT MEMORY ══╗"]
+    for article in combined[:8]:
+        signal = _classify_event(article["title"])
+        marker = "▲" if signal == "positive" else ("▼" if signal == "negative" else "•")
+        lines.append(f"{marker} [{article.get('date', 'unknown')}] {article.get('source', '')}: {article['title']}")
+    lines.append(
+        "╚══ Treat these as the freshest relevant events. If ceasefire/de-escalation headlines appear, update the thesis immediately. ══╝"
+    )
+    return "\n".join(lines)
+
+
+def build_context(message: str, db=None, portfolio_holdings: list | None = None) -> str:
+    companies = detect_companies(message, portfolio_holdings)
     now = datetime.now().strftime("%d %b %Y %H:%M IST")
     blocks = []
 
-    # ── 1. Live stock prices ──────────────────────────────────────────────────
     if companies:
         blocks.append(f"╔══ LIVE MARKET DATA — {now} ══╗")
-        for name, ticker, sector in companies[:3]:
+        for name, ticker, sector, role in companies[:3]:
             snap = fetch_live_snapshot(ticker)
             if not snap:
-                blocks.append(f"  {name} ({ticker}): Data unavailable")
+                blocks.append(f"{name} ({ticker}) | {sector.upper()} | role={role} | Data unavailable")
                 continue
-            arrow = "▼ BEARISH" if (snap["pct_5d"] or 0) < -0.5 else \
-                    "▲ BULLISH" if (snap["pct_5d"] or 0) > 0.5 else "➡ SIDEWAYS"
-            recent = " → ".join([f"₹{p}" for _, p in snap["recent_closes"]])
             pct = f"{snap['pct_5d']:+.2f}%" if snap["pct_5d"] is not None else "n/a"
+            trend = " → ".join(f"₹{price}" for price in snap["recent_closes"])
             blocks.append(
-                f"\n  📊 {name} ({ticker}) | {sector.upper()}\n"
-                f"  Price: ₹{snap['live_price']} | 5D: {pct} {arrow}\n"
-                f"  52W High: ₹{snap['hi_52w']} | 52W Low: ₹{snap['lo_52w']}\n"
-                f"  Trend: {recent}"
+                f"{name} ({ticker}) | {sector.upper()} | role={role}\n"
+                f"Current price: ₹{snap['live_price']} (live, NSE) | 5D: {pct}\n"
+                f"52W high: ₹{snap['hi_52w']} | 52W low: ₹{snap['lo_52w']}\n"
+                f"Recent closes: {trend}"
             )
-        blocks.append("\n╚══ USE THESE EXACT NUMBERS. DO NOT INVENT PRICES. ══╝\n")
+        blocks.append("╚══ USE THESE EXACT NUMBERS. DO NOT INVENT PRICES. ══╝")
 
-    # ── 2. Live news feed ─────────────────────────────────────────────────────
-    query = build_search_query(message, companies)
-    news = fetch_live_news(query)
+    event_memory = _build_event_memory(message, db=db, portfolio_holdings=portfolio_holdings)
+    if event_memory:
+        blocks.append(event_memory)
 
-    if news:
-        blocks.append(f'╔══ LIVE NEWS — Last 7 Days (query: "{query}") ══╗')
-        for n in news:
-            blocks.append(f"  [{n['date']}] {n['source']}: {n['title']}")
-        blocks.append(
-            "╚══ BASE YOUR ANALYSIS ON THESE REAL HEADLINES. "
-            "Quote specific sources where relevant. ══╝\n"
-        )
-
-    return "\n".join(blocks) if blocks else ""
+    return "\n\n".join(blocks).strip()

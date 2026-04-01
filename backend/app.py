@@ -429,12 +429,28 @@ def chat_personal(body: PortfolioChatRequest, current_user=Depends(get_current_u
     if not intelligence["holdings"]:
         return {"response": "Your portfolio is empty. Add holdings first, then ask me portfolio questions."}
 
+    tracked_companies = load_data().get("companies", [])
+    tracked_universe = "\n".join(
+        f"- {company['ticker']}: {company['name']} | sector={company.get('sector', 'unknown')} | role={company.get('role', 'unknown')}"
+        for company in tracked_companies
+    )
+    held_tickers = ", ".join(holding["ticker"] for holding in intelligence["holdings"])
+
     prompt = (
         f"You are the personal portfolio copilot for {current_user['full_name']}.\n"
         f"Use this live portfolio context:\n{intelligence['narrative_prompt']}\n\n"
+        f"Current holdings tickers: {held_tickers}\n\n"
+        f"Tracked universe available for recommendations:\n{tracked_universe}\n\n"
         f"User question: {body.message}\n\n"
-        "Answer directly about this user's own holdings. Use buy date, buy price, current price, sector, role, and portfolio concentration."
-        " Keep it clear and conversational, but still sharp."
+        "Rules:\n"
+        "1. Answer the user's exact question in the first line.\n"
+        "2. If the user asks what to buy/add now, give a ranked shortlist from the tracked universe, not a lecture.\n"
+        "3. Use sections exactly as needed: BUY NOW, WATCHLIST, AVOID / NO BUY, PORTFOLIO FIT.\n"
+        "4. Be blunt and decisive. Do not refuse. Do not say you cannot give buy/sell recommendations.\n"
+        "5. Avoid over-concentrating into the user's existing largest position or sector unless conviction is very strong.\n"
+        "6. Prefer ideas that diversify the user's current holdings and are strategically strong in the present environment.\n"
+        "7. If live price is missing, say 'Price check: use Market Intelligence tab for live NSE data.'\n"
+        "8. Keep the answer crisp, specific, and data-oriented."
     )
     response = llm.chat(prompt, body.history or [])
     return {"response": response}

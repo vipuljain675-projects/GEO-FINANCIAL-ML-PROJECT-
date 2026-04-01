@@ -22,7 +22,8 @@ const viewConfigs = {
   'overview': { title: 'Strategic Overview', sub: 'National Critical Infrastructure Analysis' },
   'network': { title: 'Dependency Network', sub: 'Inter-company Critical Links' },
   'threat-sim': { title: 'Scenario Engine', sub: 'AI Gen. Actionable Scenarios' },
-  'risk': { title: 'Market Intelligence', sub: 'NSE Stock History · ML Forecast · Twitter + GDELT Signals' },
+  'risk': { title: 'Market Intelligence', sub: 'Past + Present Price Tracking · Live News · Macro Signals' },
+  'forecast': { title: 'Strategic Forecast', sub: 'Future Price Projection · Event-Weighted Model' },
   'analyst': { title: 'Sentinel AI Analyst', sub: 'Encrypted Strategic Intelligence' },
   'portfolio': { title: 'Personal Advisor', sub: 'Individualized Wealth Risk & Strategic Advisory' }
 };
@@ -74,6 +75,9 @@ async function init() {
       
       if (item.dataset.view === 'risk' && typeof initMarketIntelligence === 'function') {
         setTimeout(initMarketIntelligence, 100);
+      }
+      if (item.dataset.view === 'forecast' && typeof initStrategicForecast === 'function') {
+        setTimeout(initStrategicForecast, 100);
       }
       if (item.dataset.view === 'portfolio') {
         initPortfolio();
@@ -540,6 +544,9 @@ function switchView(viewId) {
   }
   if (viewId === 'risk') {
     loadMLIntelligence();
+  }
+  if (viewId === 'forecast' && typeof initStrategicForecast === 'function') {
+    initStrategicForecast();
   }
 }
 

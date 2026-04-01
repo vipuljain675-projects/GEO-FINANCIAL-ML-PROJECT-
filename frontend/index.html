@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="/static/css/style.css?v=2.0" />
-  <link rel="stylesheet" href="/static/css/market.css?v=2.0" />
+  <link rel="stylesheet" href="/static/css/market.css?v=2.1" />
   <style>
     .event-pills { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px 0; }
     .event-pill { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; border: 1px solid; letter-spacing: 0.3px; cursor: default; }
@@ -207,6 +207,9 @@
       </button>
       <button class="nav-item" data-view="risk">
         <span class="nav-icon">▣</span> Market Intelligence
+      </button>
+      <button class="nav-item" data-view="forecast">
+        <span class="nav-icon">◬</span> Strategic Forecast
       </button>
       <button class="nav-item" data-view="analyst">
         <span class="nav-icon">◆</span> AI Analyst
@@ -407,19 +410,35 @@
             <span class="panel-title" id="chart-title">SELECT A COMPANY TO LOAD REAL MARKET DATA</span>
             <div style="display:flex;gap:8px;align-items:center">
               <span class="chart-legend-item"><span style="background:#6366f1;width:12px;height:2px;display:inline-block;border-radius:1px"></span> Historical</span>
-              <span class="chart-legend-item"><span style="background:#f59e0b;width:12px;height:2px;display:inline-block;border-radius:1px;border-top:2px dashed #f59e0b"></span> ML Forecast</span>
-              <span class="panel-tag">yfinance · Polynomial Regression</span>
+              <span class="panel-tag">yfinance · Live Tracking</span>
             </div>
           </div>
           <div class="market-chart-body">
             <div id="market-loading" class="market-placeholder">
               <div class="placeholder-icon">📈</div>
               <div>Select a company to load its full price history from 2010</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Real NSE data via Yahoo Finance · ML 45-day forecast · Event annotations</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Real NSE data via Yahoo Finance · event annotations · live company and macro signals</div>
+            </div>
+            <div id="market-hover-readout" class="market-hover-readout hidden">
+              <div class="market-hover-date" id="market-hover-date">Hover over the chart</div>
+              <div class="market-hover-price" id="market-hover-price">₹—</div>
+              <div class="market-hover-meta" id="market-hover-meta">Precise date and price will appear here.</div>
             </div>
             <canvas id="marketChart" style="display:none; width:100%; height:100%;"></canvas>
-            <!-- Event annotation pills (rendered dynamically) -->
-            <div id="event-pills" class="event-pills"></div>
+          </div>
+          <div class="market-inspector-strip">
+            <div class="market-inspector-card">
+              <div class="market-inspector-label">Date Inspector</div>
+              <div class="market-inspector-controls">
+                <input type="date" id="market-date-input" class="market-date-input">
+                <button id="market-date-jump" class="mini-cyber-btn">Check Price</button>
+              </div>
+              <div class="market-inspector-output" id="market-date-output">Pick a date to inspect the nearest available historical close.</div>
+            </div>
+            <div class="market-inspector-card">
+              <div class="market-inspector-label">Event Ribbon</div>
+              <div id="event-pills" class="event-pills market-event-ribbon"></div>
+            </div>
           </div>
         </div>
 
@@ -428,7 +447,7 @@
           <!-- Twitter Sentiment -->
           <div class="panel signal-card">
             <div class="panel-header">
-              <span class="panel-title">📰 NEWS SENTIMENT</span>
+              <span class="panel-title">📰 COMPANY NEWS</span>
               <span class="panel-tag" id="twitter-tag">Live · NewsAPI</span>
             </div>
             <div class="panel-body" id="twitter-panel">
@@ -455,6 +474,84 @@
             </div>
             <div class="panel-body" id="events-panel">
               <div class="loading">Select company to load events</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-forecast" class="view market-view">
+      <div class="market-controls">
+        <div class="control-group">
+          <label>SELECT COMPANY</label>
+          <select id="forecast-company-select">
+            <option value="">— Loading companies —</option>
+          </select>
+        </div>
+      </div>
+      <div class="panel" style="padding:16px;">
+        <div class="panel-header">
+          <span class="panel-title">STRATEGIC FORECAST</span>
+          <span class="panel-tag">Future Price Only</span>
+        </div>
+        <div class="market-chart-body" style="height:380px; padding-top:24px;">
+          <div id="forecast-chart-loading" class="market-placeholder">
+            <div class="placeholder-icon">◬</div>
+            <div>Select a company to load the forward strategic projection</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:6px">7-day, 30-day, risk band, and event-weighted direction</div>
+          </div>
+          <canvas id="forecastChartCanvas" style="display:none; width:100%; height:100%;"></canvas>
+        </div>
+        <div class="market-forecast-strip">
+          <div class="forecast-card forecast-primary">
+            <div class="forecast-card-label">Forecast Bias</div>
+            <div class="forecast-card-value" id="forecast-page-bias">Select company</div>
+            <div class="forecast-card-sub" id="forecast-page-bias-sub">Future price logic lives here, separate from live tracking.</div>
+          </div>
+          <div class="forecast-card forecast-bull">
+            <div class="forecast-card-label">7 Day View</div>
+            <div class="forecast-card-value" id="forecast-page-7d">—</div>
+            <div class="forecast-card-sub" id="forecast-page-7d-sub">Short-term move</div>
+          </div>
+          <div class="forecast-card forecast-base">
+            <div class="forecast-card-label">30 Day Base Case</div>
+            <div class="forecast-card-value" id="forecast-page-30d">—</div>
+            <div class="forecast-card-sub" id="forecast-page-30d-sub">Model base case</div>
+          </div>
+          <div class="forecast-card forecast-risk">
+            <div class="forecast-card-label">Risk Case</div>
+            <div class="forecast-card-value" id="forecast-page-risk">—</div>
+            <div class="forecast-card-sub" id="forecast-page-risk-sub">News + macro downside</div>
+          </div>
+        </div>
+        <div class="forecast-layout">
+          <div class="market-strategic-panel">
+            <div class="market-strategic-head">
+              <div class="market-strategic-title">Strategic Forecast Engine</div>
+              <div class="market-strategic-method" id="forecast-page-method">Future price is built from price trend, significance, news, and historical event behavior.</div>
+            </div>
+            <div class="market-strategic-headline" id="forecast-page-headline">Select a company to see the strategic drivers behind the future price path.</div>
+            <div class="market-strategic-grid" id="forecast-page-factors"></div>
+            <div class="market-analogue" id="forecast-page-analogue"></div>
+          </div>
+          <div class="forecast-side-stack">
+            <div class="panel signal-card">
+              <div class="panel-header">
+                <span class="panel-title">LIVE INPUTS USED</span>
+                <span class="panel-tag">News + Macro + Events</span>
+              </div>
+              <div class="panel-body" id="forecast-page-inputs">
+                <div class="loading">Select a company to inspect the live inputs driving the forecast.</div>
+              </div>
+            </div>
+            <div class="panel signal-card">
+              <div class="panel-header">
+                <span class="panel-title">MODEL BASIS</span>
+                <span class="panel-tag">Why this path</span>
+              </div>
+              <div class="panel-body" id="forecast-page-basis">
+                <div class="loading">The model basis will appear here once a company is selected.</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1268,10 +1365,10 @@
   })();
   </script>
 
-  <script src="/static/js/audio.js?v=2.0"></script>
-  <script src="/static/js/main.js?v=2.0"></script>
-  <script src="/static/js/graph.js?v=2.0"></script>
-  <script src="/static/js/chat.js?v=2.0"></script>
-  <script src="/static/js/market.js?v=2.0"></script>
+  <script src="/static/js/audio.js?v=2.1"></script>
+  <script src="/static/js/main.js?v=2.1"></script>
+  <script src="/static/js/graph.js?v=2.1"></script>
+  <script src="/static/js/chat.js?v=2.1"></script>
+  <script src="/static/js/market.js?v=2.1"></script>
 </body>
 </html>

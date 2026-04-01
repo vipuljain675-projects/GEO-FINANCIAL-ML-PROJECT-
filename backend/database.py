@@ -60,6 +60,8 @@ def ensure_indexes(db=None) -> None:
     db["live_events"].create_index("query")
     db["live_events"].create_index("tickers")
     db["live_events"].create_index("sectors")
+    db["chat_memory"].create_index([("user_id", ASCENDING), ("scope", ASCENDING)], unique=True)
+    db["chat_memory"].create_index("updated_at")
 
 
 def migrate_sqlite_to_mongo(db=None) -> dict:

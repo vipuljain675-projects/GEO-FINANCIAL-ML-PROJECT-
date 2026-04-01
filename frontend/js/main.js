@@ -2,6 +2,14 @@
 let globalData = {};
 let riskData = [];
 let portfolioChatHistory = [];
+let portfolioHistoryLoaded = false;
+let portfolioHistoryKey = null;
+const PORTFOLIO_THINKING_STAGES = [
+  'Reading your holdings...',
+  'Scanning live event memory...',
+  'Testing portfolio scenarios...',
+  'Preparing decisive answer...'
+];
 
 // DOM Elements
 const views = document.querySelectorAll('.view');
@@ -131,6 +139,7 @@ async function initPortfolio() {
   authStatus.style.color = '#10b981';
   document.getElementById('btn-add-to-port').disabled = false;
   document.getElementById('btn-run-advisor').disabled = false;
+  loadPortfolioHistory();
   fetchHoldings();
 }
 
@@ -264,6 +273,89 @@ function appendPortfolioChatMessage(role, text) {
   container.scrollTop = container.scrollHeight;
 }
 
+function appendPortfolioThinking() {
+  const container = document.getElementById('portfolio-chat-messages');
+  if (!container) return null;
+  const node = document.createElement('div');
+  node.className = 'portfolio-chat-msg assistant thinking';
+  node.innerHTML = `
+    <div class="portfolio-chat-role">SENTINEL</div>
+    <div class="portfolio-chat-bubble">
+      <strong>Working...</strong><br>
+      <span class="portfolio-thinking-stage">Reading your holdings...</span>
+    </div>
+  `;
+  container.appendChild(node);
+  container.scrollTop = container.scrollHeight;
+  const stageNode = node.querySelector('.portfolio-thinking-stage');
+  let index = 0;
+  const timer = setInterval(() => {
+    if (!document.body.contains(node)) {
+      clearInterval(timer);
+      return;
+    }
+    index = (index + 1) % PORTFOLIO_THINKING_STAGES.length;
+    if (stageNode) stageNode.textContent = PORTFOLIO_THINKING_STAGES[index];
+  }, 1200);
+  node.dataset.timerId = String(timer);
+  return node;
+}
+
+function removePortfolioThinking(node) {
+  if (!node) return;
+  if (node.dataset.timerId) {
+    clearInterval(Number(node.dataset.timerId));
+  }
+  node.remove();
+}
+
+async function loadPortfolioHistory() {
+  const container = document.getElementById('portfolio-chat-messages');
+  if (!container) return;
+  const token = localStorage.getItem('sentinel_token');
+  if (!token || isGuest()) {
+    portfolioHistoryLoaded = false;
+    portfolioHistoryKey = null;
+    return;
+  }
+  const nextKey = token.slice(-16);
+  if (portfolioHistoryLoaded && portfolioHistoryKey === nextKey) return;
+  portfolioHistoryLoaded = true;
+  portfolioHistoryKey = nextKey;
+  try {
+    const res = await fetch('/api/chat/history?scope=portfolio', { headers: getAuthHeaders() });
+    const data = await parseApiResponse(res);
+    const messages = data.messages || [];
+    if (!messages.length) return;
+    container.innerHTML = '';
+    portfolioChatHistory = [];
+    messages.forEach((msg) => {
+      appendPortfolioChatMessage(msg.role === 'assistant' ? 'assistant' : 'user', msg.content);
+      portfolioChatHistory.push({ role: msg.role, content: msg.content });
+    });
+  } catch (_err) {
+    portfolioHistoryLoaded = false;
+  }
+}
+
+function resetPortfolioHistoryState() {
+  portfolioChatHistory = [];
+  portfolioHistoryLoaded = false;
+  portfolioHistoryKey = null;
+  const container = document.getElementById('portfolio-chat-messages');
+  if (container) {
+    container.innerHTML = `
+      <div class="portfolio-chat-msg assistant">
+        <div class="portfolio-chat-role">SENTINEL</div>
+        <div class="portfolio-chat-bubble">Ask me anything about your uploaded holdings and I will answer using your buy date, buy price, sector exposure, and current position context.</div>
+      </div>
+    `;
+  }
+}
+
+window.loadPortfolioHistory = loadPortfolioHistory;
+window.resetPortfolioHistoryState = resetPortfolioHistoryState;
+
 async function parseApiResponse(res) {
   const raw = await res.text();
   let data = {};
@@ -296,6 +388,7 @@ async function sendPortfolioChatMessage(prefillText) {
   appendPortfolioChatMessage('user', text);
   if (input) input.value = '';
   if (sendBtn) sendBtn.disabled = true;
+  const thinkingNode = appendPortfolioThinking();
 
   try {
     const res = await fetch('/api/personal/chat', {
@@ -304,12 +397,14 @@ async function sendPortfolioChatMessage(prefillText) {
       body: JSON.stringify({ message: text, history: portfolioChatHistory })
     });
     const data = await parseApiResponse(res);
+    removePortfolioThinking(thinkingNode);
     const reply = data.response || 'No response from portfolio advisor.';
     appendPortfolioChatMessage('assistant', reply);
     portfolioChatHistory.push({ role: 'user', content: text });
     portfolioChatHistory.push({ role: 'assistant', content: reply });
     if (portfolioChatHistory.length > 20) portfolioChatHistory = portfolioChatHistory.slice(-20);
   } catch (e) {
+    removePortfolioThinking(thinkingNode);
     appendPortfolioChatMessage('assistant', `Comm-link failure: ${e.message}`);
   } finally {
     if (sendBtn) sendBtn.disabled = false;
@@ -359,15 +454,32 @@ document.getElementById('btn-run-advisor')?.addEventListener('click', async () =
   const container = document.getElementById('advisor-result-container');
   const text = document.getElementById('advisor-text');
   const btn = document.getElementById('btn-run-advisor');
+  const loadingStage = document.querySelector('.advisor-loading-stage');
+  const advisorStages = [
+    'Scanning portfolio concentration...',
+    'Pulling live event memory...',
+    'Checking market and geopolitical triggers...',
+    'Drafting risk verdict...'
+  ];
+  let advisorStageIndex = 0;
+  let advisorStageTimer = null;
 
   container.classList.remove('hidden');
   document.querySelector('.advisor-loading').style.display = 'flex';
   text.innerHTML = '';
   btn.disabled = true;
+  if (loadingStage) {
+    loadingStage.textContent = advisorStages[0];
+    advisorStageTimer = setInterval(() => {
+      advisorStageIndex = (advisorStageIndex + 1) % advisorStages.length;
+      loadingStage.textContent = advisorStages[advisorStageIndex];
+    }, 1200);
+  }
 
   try {
     const res = await fetch('/api/personal/analyze', { method: 'POST', headers: getAuthHeaders() });
     const data = await parseApiResponse(res);
+    if (advisorStageTimer) clearInterval(advisorStageTimer);
     document.querySelector('.advisor-loading').style.display = 'none';
     renderPortfolioSummary(data.summary || {});
     renderDecisionCards(data.holdings || []);
@@ -387,9 +499,9 @@ document.getElementById('btn-run-advisor')?.addEventListener('click', async () =
     tick();
 
   } catch (e) {
+    if (advisorStageTimer) clearInterval(advisorStageTimer);
     document.querySelector('.advisor-loading').style.display = 'none';
     text.textContent = `Scan failed: ${e.message}`;
-    btn.disabled = false;
     btn.disabled = false;
   }
 });

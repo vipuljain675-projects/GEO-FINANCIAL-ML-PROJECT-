@@ -321,6 +321,23 @@ def _event_fingerprint(source: str, title: str, date: str) -> str:
     return hashlib.sha256(f"{source}|{title.strip().lower()}|{date}".encode("utf-8")).hexdigest()
 
 
+def _format_event_date(value: str) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return "Unknown date"
+    candidates = [
+        ("%Y-%m-%d", raw[:10]),
+        ("%Y%m%d", raw[:8]),
+        ("%Y%m%dT", raw[:8]),
+    ]
+    for fmt, candidate in candidates:
+        try:
+            return datetime.strptime(candidate, fmt).strftime("%d %b %Y")
+        except ValueError:
+            continue
+    return raw
+
+
 def _to_event_docs(kind: str, query: str, articles: list) -> list:
     docs = []
     for article in articles:
@@ -426,7 +443,7 @@ def _build_event_memory(message: str, db=None, portfolio_holdings: list | None =
                 {
                     "title": doc["title"],
                     "source": doc.get("source", ""),
-                    "date": doc.get("event_date", ""),
+                    "date": _format_event_date(doc.get("event_date", "")),
                     "signal": doc.get("signal", "neutral"),
                 }
             )
@@ -440,7 +457,7 @@ def _build_event_memory(message: str, db=None, portfolio_holdings: list | None =
     for article in combined[:8]:
         signal = article.get("signal") or _classify_event(article["title"])
         marker = "▲" if signal == "positive" else ("▼" if signal == "negative" else "•")
-        lines.append(f"{marker} [{article.get('date', 'unknown')}] {article.get('source', '')}: {article['title']}")
+        lines.append(f"{marker} [{article.get('date', 'Unknown date')}] {article.get('source', '')}: {article['title']}")
     lines.append(
         "╚══ Treat these as the freshest relevant events. If ceasefire/de-escalation headlines appear, update the thesis immediately. ══╝"
     )

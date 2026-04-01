@@ -85,6 +85,55 @@ def _serialize_portfolio_item(item: dict) -> dict:
     }
 
 
+def _resolve_user_from_auth_header(request: Request, db):
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header.lower().startswith("bearer "):
+        return None
+    token = auth_header.split(" ", 1)[1].strip()
+    if not token:
+        return None
+    payload = auth.decode_access_token(token)
+    if not payload:
+        return None
+    email = payload.get("sub")
+    if not email:
+        return None
+    user = db["users"].find_one({"email": email})
+    return _serialize_user(user) if user else None
+
+
+def _memory_scope(scope: str) -> str:
+    return scope if scope in {"analyst", "portfolio"} else "analyst"
+
+
+def _memory_doc(db, user_id: str, scope: str):
+    return db["chat_memory"].find_one({"user_id": user_id, "scope": _memory_scope(scope)})
+
+
+def get_persistent_history(db, user_id: str, scope: str, limit: int = 24) -> list:
+    doc = _memory_doc(db, user_id, scope)
+    if not doc:
+        return []
+    messages = doc.get("messages", [])
+    return messages[-limit:]
+
+
+def save_persistent_history(db, user_id: str, scope: str, history: list):
+    trimmed = (history or [])[-24:]
+    db["chat_memory"].update_one(
+        {"user_id": user_id, "scope": _memory_scope(scope)},
+        {
+            "$set": {
+                "user_id": user_id,
+                "scope": _memory_scope(scope),
+                "messages": trimmed,
+                "updated_at": time.time(),
+            }
+        },
+        upsert=True,
+    )
+
+
 # --- AUTH UTILS ---
 def get_current_user(db=Depends(database.get_db), token: str = Depends(oauth2_scheme)):
     payload = auth.decode_access_token(token)
@@ -485,7 +534,13 @@ def chat_personal(body: PortfolioChatRequest, current_user=Depends(get_current_u
         "7. If live price is missing, say 'Price check: use Market Intelligence tab for live NSE data.'\n"
         "8. Keep the answer crisp, specific, and data-oriented."
     )
-    response = llm.chat(prompt, body.history or [])
+    effective_history = body.history or get_persistent_history(db, current_user["id"], "portfolio")
+    response = llm.chat(prompt, effective_history)
+    updated_history = (effective_history + [
+        {"role": "user", "content": body.message},
+        {"role": "assistant", "content": response},
+    ])[-24:]
+    save_persistent_history(db, current_user["id"], "portfolio", updated_history)
     return {"response": response}
 
 # --- CORE APP ENDPOINTS ---
@@ -601,6 +656,13 @@ class ChatMessage(BaseModel):
     message: str
     history: Optional[List[dict]] = []
 
+@app.get("/api/chat/history")
+def chat_history(request: Request, scope: str = "analyst", db=Depends(database.get_db)):
+    user = _resolve_user_from_auth_header(request, db)
+    if not user:
+        return {"messages": []}
+    return {"messages": get_persistent_history(db, user["id"], scope)}
+
 @app.get("/api/live-events/status")
 def live_events_status(db=Depends(database.get_db)):
     latest = db["live_events"].find_one(sort=[("fetched_at", -1)])
@@ -616,10 +678,18 @@ def live_events_refresh(db=Depends(database.get_db)):
     return rag_context.ingest_default_event_set(db=db)
 
 @app.post("/api/chat")
-def chat_endpoint(body: ChatMessage, db=Depends(database.get_db)):
+def chat_endpoint(body: ChatMessage, request: Request, db=Depends(database.get_db)):
+    user = _resolve_user_from_auth_header(request, db)
     context = rag_context.build_context(body.message, db=db)
     augmented_message = f"{context}\n\nUser question: {body.message}" if context else body.message
-    response = llm.chat(augmented_message, body.history)
+    effective_history = body.history or (get_persistent_history(db, user["id"], "analyst") if user else [])
+    response = llm.chat(augmented_message, effective_history)
+    if user:
+        updated_history = (effective_history + [
+            {"role": "user", "content": body.message},
+            {"role": "assistant", "content": response},
+        ])[-24:]
+        save_persistent_history(db, user["id"], "analyst", updated_history)
     return {"response": response}
 
 if __name__ == "__main__":

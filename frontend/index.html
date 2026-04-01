@@ -645,7 +645,7 @@
               <div id="advisor-result-container" class="advisor-results hidden">
                 <div class="advisor-loading">
                   <div class="spinner"></div>
-                  <span>Scanning Geopolitical Correlations...</span>
+                  <span class="advisor-loading-stage">Scanning Geopolitical Correlations...</span>
                 </div>
                 <div id="advisor-text" class="advisor-text"></div>
               </div>
@@ -968,6 +968,7 @@
           if (data.access_token) {
             localStorage.setItem('sentinel_token', data.access_token);
             localStorage.removeItem('sentinel_guest');
+            resetAiMemoryState();
             var profileName = (name || email.split('@')[0]).trim();
             try {
               var profileRes = await fetch('/api/auth/me', {
@@ -986,6 +987,7 @@
             } else {
               if (localStorage.getItem('sentinel_onboarding_complete') === 'true') {
                 enterMainApp();
+                setTimeout(reloadAiMemoryState, 100);
               } else {
                 showOnboarding(profileName);
               }
@@ -1017,6 +1019,7 @@
       }
 
       btnBypass.addEventListener('click', function() {
+        resetAiMemoryState();
         localStorage.setItem('sentinel_guest', 'true');
         localStorage.removeItem('sentinel_token');
         localStorage.removeItem('sentinel_onboarding_complete');
@@ -1120,6 +1123,7 @@
           document.body.classList.remove('splash-active');
           updateSessionUI();
           updateAccessVisibility();
+          setTimeout(reloadAiMemoryState, 150);
           
           // Trigger the app initialization and initial view
           if (window.SENTINEL_INIT) {
@@ -1149,6 +1153,7 @@
 
         localStorage.setItem('sentinel_token', activeToken);
         localStorage.removeItem('sentinel_guest');
+        resetAiMemoryState();
         if (queryName) localStorage.setItem('sentinel_user_name', queryName);
         if (queryToken) {
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -1164,10 +1169,12 @@
           localStorage.setItem('sentinel_user_name', profile.full_name || profile.email);
           if (localStorage.getItem('sentinel_onboarding_complete') === 'true') {
             enterMainApp();
+            setTimeout(reloadAiMemoryState, 100);
           } else {
             showOnboarding(profile.full_name || profile.email.split('@')[0]);
           }
         } catch (err) {
+          resetAiMemoryState();
           localStorage.removeItem('sentinel_token');
           localStorage.removeItem('sentinel_user_name');
           localStorage.removeItem('sentinel_onboarding_complete');
@@ -1205,9 +1212,20 @@
         updateAccessVisibility();
       }
 
+      function resetAiMemoryState() {
+        if (window.resetAnalystHistoryState) window.resetAnalystHistoryState();
+        if (window.resetPortfolioHistoryState) window.resetPortfolioHistoryState();
+      }
+
+      function reloadAiMemoryState() {
+        if (window.loadAnalystHistory) window.loadAnalystHistory();
+        if (window.loadPortfolioHistory) window.loadPortfolioHistory();
+      }
+
       var logoutBtn = document.getElementById('btn-logout');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
+          resetAiMemoryState();
           localStorage.removeItem('sentinel_token');
           localStorage.removeItem('sentinel_guest');
           localStorage.removeItem('sentinel_user_name');

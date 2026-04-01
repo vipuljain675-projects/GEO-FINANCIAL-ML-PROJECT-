@@ -12,6 +12,8 @@ from starlette.config import Config
 from authlib.integrations.starlette_client import OAuth
 from urllib.parse import quote
 from dotenv import load_dotenv
+import threading
+import time
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"), override=True)
 
@@ -35,11 +37,34 @@ app.add_middleware(
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+LIVE_EVENT_REFRESH_MINUTES = max(5, int(os.getenv("LIVE_EVENT_REFRESH_MINUTES", "15")))
+_live_event_worker_started = False
 
 
 @app.on_event("startup")
 def startup_initialize_database():
     database.initialize_database()
+    _start_live_event_worker()
+
+
+def _live_event_refresh_loop():
+    while True:
+        try:
+            db = database.get_database()
+            stats = rag_context.ingest_default_event_set(db=db)
+            print(f"[LIVE EVENT WORKER] Refreshed events: {stats}")
+        except Exception as exc:
+            print(f"[LIVE EVENT WORKER] Refresh failed: {exc}")
+        time.sleep(LIVE_EVENT_REFRESH_MINUTES * 60)
+
+
+def _start_live_event_worker():
+    global _live_event_worker_started
+    if _live_event_worker_started:
+        return
+    worker = threading.Thread(target=_live_event_refresh_loop, daemon=True, name="live-event-worker")
+    worker.start()
+    _live_event_worker_started = True
 
 def _serialize_user(user: dict) -> dict:
     return {
@@ -575,6 +600,20 @@ def get_live_price(ticker: str):
 class ChatMessage(BaseModel):
     message: str
     history: Optional[List[dict]] = []
+
+@app.get("/api/live-events/status")
+def live_events_status(db=Depends(database.get_db)):
+    latest = db["live_events"].find_one(sort=[("fetched_at", -1)])
+    return {
+        "event_count": db["live_events"].count_documents({}),
+        "cache_count": db["live_event_cache"].count_documents({}),
+        "latest_fetch": latest.get("fetched_at").isoformat() if latest and latest.get("fetched_at") else None,
+        "latest_title": latest.get("title") if latest else None,
+    }
+
+@app.post("/api/live-events/refresh")
+def live_events_refresh(db=Depends(database.get_db)):
+    return rag_context.ingest_default_event_set(db=db)
 
 @app.post("/api/chat")
 def chat_endpoint(body: ChatMessage, db=Depends(database.get_db)):

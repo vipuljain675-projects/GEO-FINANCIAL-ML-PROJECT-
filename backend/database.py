@@ -54,6 +54,12 @@ def ensure_indexes(db=None) -> None:
     db["portfolios"].create_index([("user_id", ASCENDING), ("ticker", ASCENDING)], unique=True)
     db["live_event_cache"].create_index("cache_key", unique=True)
     db["live_event_cache"].create_index("fetched_at")
+    db["live_events"].create_index("fingerprint", unique=True)
+    db["live_events"].create_index("event_date")
+    db["live_events"].create_index("fetched_at")
+    db["live_events"].create_index("query")
+    db["live_events"].create_index("tickers")
+    db["live_events"].create_index("sectors")
 
 
 def migrate_sqlite_to_mongo(db=None) -> dict:

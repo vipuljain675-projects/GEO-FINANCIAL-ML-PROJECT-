@@ -1,0 +1,123 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(820 350) rotate(90) scale(520 860)">
+      <stop offset="0" stop-color="#12305A"/>
+      <stop offset="0.28" stop-color="#0A1E3B"/>
+      <stop offset="0.62" stop-color="#071220"/>
+      <stop offset="1" stop-color="#03060C"/>
+    </radialGradient>
+    <radialGradient id="core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(826 330) rotate(90) scale(160 160)">
+      <stop offset="0" stop-color="#D8FCFF" stop-opacity="0.95"/>
+      <stop offset="0.22" stop-color="#78D9FF" stop-opacity="0.8"/>
+      <stop offset="0.5" stop-color="#3C7BF0" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#3C7BF0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gridLine" x1="140" y1="0" x2="1460" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1A355D" stop-opacity="0"/>
+      <stop offset="0.48" stop-color="#2A5BA0" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#1A355D" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="496" y1="56" x2="1166" y2="705" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14264A"/>
+      <stop offset="0.5" stop-color="#4A74C4"/>
+      <stop offset="1" stop-color="#12244A"/>
+    </linearGradient>
+    <filter id="blur" x="-100" y="-100" width="1800" height="1100" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+
+  <g opacity="0.18">
+    <path d="M0 92H1600" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M0 220H1600" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M0 348H1600" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M0 476H1600" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M0 604H1600" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M0 732H1600" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M176 0V900" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M380 0V900" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M584 0V900" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M788 0V900" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M992 0V900" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M1196 0V900" stroke="url(#gridLine)" stroke-width="1"/>
+    <path d="M1400 0V900" stroke="url(#gridLine)" stroke-width="1"/>
+  </g>
+
+  <g opacity="0.28" filter="url(#blur)">
+    <path d="M188 276C282 218 392 192 474 206C552 220 592 266 658 278C724 290 786 280 856 248C936 210 998 176 1098 180C1210 184 1318 248 1428 306" stroke="#6D5CF0" stroke-width="6"/>
+    <path d="M150 560C248 494 328 460 410 454C518 446 592 498 698 496C806 494 874 442 960 440C1056 438 1132 490 1238 500C1310 506 1394 486 1456 458" stroke="#37B7FF" stroke-width="6"/>
+  </g>
+
+  <g opacity="0.95">
+    <path d="M170 278L250 248L312 266L366 238L432 246L478 228L540 244L612 228L668 244L732 238L790 250L846 228L900 214L962 212L1014 226L1076 230L1142 252L1218 238L1300 250L1390 278"
+      stroke="#8FB6FF" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 6"/>
+    <path d="M188 316L266 302L320 314L388 294L454 308L506 292L560 306L632 298L694 308L756 302L816 316L874 296L938 286L998 286L1060 298L1122 304L1202 322L1290 314L1388 326"
+      stroke="#86ECFF" stroke-width="1.3" stroke-linecap="round" stroke-dasharray="1 7"/>
+    <path d="M182 534L246 508L318 516L396 486L466 498L526 490L598 500L664 496L738 504L806 492L886 476L952 478L1030 490L1112 510L1200 520L1308 510L1416 490"
+      stroke="#7CD8FF" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 6"/>
+    <path d="M170 576L248 556L320 562L390 540L462 552L530 542L602 552L668 548L742 554L818 544L896 530L970 528L1044 540L1124 560L1216 566L1316 556L1428 534"
+      stroke="#A490FF" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="1 7"/>
+  </g>
+
+  <g opacity="0.9">
+    <circle cx="335" cy="291" r="6.5" fill="#97F6FF"/>
+    <circle cx="587" cy="241" r="4" fill="#C7E2FF"/>
+    <circle cx="844" cy="252" r="5" fill="#7CD8FF"/>
+    <circle cx="1098" cy="235" r="4.5" fill="#B5C8FF"/>
+    <circle cx="1260" cy="278" r="7" fill="#97F6FF"/>
+    <circle cx="448" cy="502" r="5" fill="#7CD8FF"/>
+    <circle cx="932" cy="480" r="6" fill="#97F6FF"/>
+    <circle cx="1228" cy="520" r="5.5" fill="#C7E2FF"/>
+    <circle cx="1392" cy="498" r="4.5" fill="#97F6FF"/>
+    <circle cx="1005" cy="286" r="18" fill="#D3FF7C" fill-opacity="0.08" stroke="#D3FF7C" stroke-opacity="0.5"/>
+    <circle cx="1110" cy="456" r="16" fill="#FFB547" fill-opacity="0.08" stroke="#FFB547" stroke-opacity="0.45"/>
+  </g>
+
+  <g opacity="0.52">
+    <path d="M335 291C478 334 654 322 844 252" stroke="#86ECFF" stroke-width="1.4"/>
+    <path d="M844 252C958 256 1116 260 1260 278" stroke="#86ECFF" stroke-width="1.4"/>
+    <path d="M335 291C520 366 742 432 932 480" stroke="#9E8AFF" stroke-width="1.2"/>
+    <path d="M932 480C1036 500 1164 514 1392 498" stroke="#9E8AFF" stroke-width="1.2"/>
+    <path d="M1260 278C1184 350 1140 400 1110 456" stroke="#FFB547" stroke-width="1.1" stroke-dasharray="5 6"/>
+  </g>
+
+  <g opacity="0.75">
+    <rect x="1122" y="214" width="132" height="42" rx="6" fill="rgba(7,18,32,0.75)" stroke="#355B8D"/>
+    <text x="1138" y="231" fill="#C9D6F2" font-size="10" font-family="JetBrains Mono, monospace">DERIVATIVES</text>
+    <text x="1138" y="245" fill="#C9D6F2" font-size="10" font-family="JetBrains Mono, monospace">MARKET HEATMAP</text>
+
+    <rect x="1210" y="330" width="116" height="42" rx="6" fill="rgba(7,18,32,0.75)" stroke="#355B8D"/>
+    <text x="1225" y="347" fill="#C9D6F2" font-size="10" font-family="JetBrains Mono, monospace">CURRENCY</text>
+    <text x="1225" y="361" fill="#C9D6F2" font-size="10" font-family="JetBrains Mono, monospace">PRESSURE GRID</text>
+
+    <rect x="1118" y="468" width="126" height="42" rx="6" fill="rgba(7,18,32,0.75)" stroke="#355B8D"/>
+    <text x="1134" y="485" fill="#C9D6F2" font-size="10" font-family="JetBrains Mono, monospace">VOLATILITY</text>
+    <text x="1134" y="499" fill="#C9D6F2" font-size="10" font-family="JetBrains Mono, monospace">INDEX TRACE</text>
+
+    <rect x="250" y="612" width="128" height="42" rx="6" fill="rgba(7,18,32,0.75)" stroke="#355B8D"/>
+    <text x="266" y="629" fill="#C9D6F2" font-size="10" font-family="JetBrains Mono, monospace">CAPITAL FLOW</text>
+    <text x="266" y="643" fill="#C9D6F2" font-size="10" font-family="JetBrains Mono, monospace">CORRIDOR</text>
+  </g>
+
+  <g opacity="0.72">
+    <circle cx="820" cy="318" r="250" stroke="url(#ring)" stroke-width="24"/>
+    <circle cx="820" cy="318" r="194" stroke="#182A55" stroke-width="20"/>
+    <circle cx="820" cy="318" r="156" stroke="#274F92" stroke-width="1.5" stroke-dasharray="3 10"/>
+    <circle cx="820" cy="318" r="108" stroke="#9BDFFF" stroke-width="1.5"/>
+    <circle cx="820" cy="318" r="78" stroke="#182A55" stroke-width="14"/>
+    <circle cx="820" cy="318" r="28" stroke="#7CD8FF" stroke-width="4"/>
+    <circle cx="796" cy="344" r="20" stroke="#6D5CF0" stroke-width="4"/>
+    <circle cx="840" cy="292" r="18" stroke="#7CD8FF" stroke-width="3.5" opacity="0.85"/>
+  </g>
+
+  <circle cx="820" cy="318" r="178" fill="url(#core)"/>
+
+  <g opacity="0.24">
+    <path d="M110 126C210 104 316 100 430 112" stroke="#264777" stroke-width="1.5"/>
+    <path d="M1164 122C1272 96 1372 96 1486 120" stroke="#264777" stroke-width="1.5"/>
+    <path d="M122 780C256 760 388 756 520 774" stroke="#264777" stroke-width="1.5"/>
+    <path d="M1030 774C1160 756 1288 754 1432 776" stroke="#264777" stroke-width="1.5"/>
+  </g>
+</svg>

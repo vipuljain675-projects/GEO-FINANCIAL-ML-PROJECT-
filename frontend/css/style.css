@@ -1100,9 +1100,9 @@ body.splash-active {
 .s1-tag {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 5px;
-  color: rgba(255, 60, 60, 0.85);
-  border: 1px solid rgba(255, 60, 60, 0.4);
+  letter-spacing: 4px;
+  color: rgba(255, 130, 130, 0.88);
+  border: 1px solid rgba(255, 130, 130, 0.36);
   padding: 4px 16px;
   margin-bottom: 24px;
 }
@@ -1122,18 +1122,19 @@ body.splash-active {
 
 .cyber-title {
   font-family: var(--font-mono);
-  font-size: 48px;
+  font-size: 44px;
   font-weight: 800;
-  letter-spacing: 12px;
+  letter-spacing: 9px;
   color: #fff;
-  text-shadow: 0 0 40px rgba(99, 102, 241, 0.9);
+  text-shadow: 0 0 40px rgba(99, 102, 241, 0.85);
 }
 
 .s1-sub {
   font-family: var(--font-mono);
   font-size: 12px;
-  letter-spacing: 4px;
+  letter-spacing: 3px;
   color: rgba(199, 210, 254, 0.7);
+  max-width: 860px;
 }
 
 .s1-divider {

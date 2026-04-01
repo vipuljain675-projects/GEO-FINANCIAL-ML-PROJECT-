@@ -113,14 +113,9 @@ def chat(message: str, history: list = None) -> str:
             return _gemini_chat(message, history)
         except Exception as e:
             err = str(e)
-            note = (
-                "⚡ [Groq fallback — Gemini rate limited] "
-                if "429" in err or "quota" in err.lower() or "exhausted" in err.lower()
-                else f"⚡ [Groq fallback — {err[:60]}] "
-            )
             if GROQ_API_KEY:
                 try:
-                    return _groq_chat(message, history, note=note)
+                    return _groq_chat(message, history)
                 except Exception as groq_err:
                     return (
                         "SENTINEL response channel degraded.\n\n"
@@ -186,7 +181,7 @@ def _gemini_chat(message: str, history: list = None) -> str:
         raise Exception(f"Gemini Text Error: {str(e)}")
 
 
-def _groq_chat(message: str, history: list = None, note: str = "") -> str:
+def _groq_chat(message: str, history: list = None) -> str:
     if not GROQ_API_KEY:
         return "⚠️ SENTINEL offline — no API keys configured."
     from groq import Groq
@@ -201,4 +196,4 @@ def _groq_chat(message: str, history: list = None, note: str = "") -> str:
         max_tokens=2000,
         temperature=0.75,
     )
-    return note + resp.choices[0].message.content
+    return resp.choices[0].message.content

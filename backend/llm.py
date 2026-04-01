@@ -98,18 +98,40 @@ CRITICAL: Answer the user's actual question first. No evasion.
 
 
 def chat(message: str, history: list = None) -> str:
-    """Primary: Gemini 2.5 Flash. Fallback: Groq Llama 3.3 70B."""
+    """Primary: Gemini 2.5 Flash. Fallback: Groq Llama 3.3 70B.
+
+    Never raise raw provider errors back into FastAPI routes. If both providers
+    fail, return a readable degraded-mode message instead of a 500.
+    """
     if GEMINI_API_KEY:
         try:
             return _gemini_chat(message, history)
         except Exception as e:
             err = str(e)
-            # Silent fallback on quota/rate errors
-            if "429" in err or "quota" in err.lower() or "exhausted" in err.lower():
-                return _groq_chat(message, history, note="⚡ [Groq fallback — Gemini rate limited] ")
-            return _groq_chat(message, history, note=f"⚡ [Groq fallback — {err[:60]}] ")
+            note = (
+                "⚡ [Groq fallback — Gemini rate limited] "
+                if "429" in err or "quota" in err.lower() or "exhausted" in err.lower()
+                else f"⚡ [Groq fallback — {err[:60]}] "
+            )
+            if GROQ_API_KEY:
+                try:
+                    return _groq_chat(message, history, note=note)
+                except Exception as groq_err:
+                    return (
+                        "SENTINEL response channel degraded.\n\n"
+                        f"Primary model error: {err[:180]}\n"
+                        f"Fallback model error: {str(groq_err)[:180]}\n\n"
+                        "Try again in a few seconds."
+                    )
+            return f"SENTINEL response channel degraded. Primary model error: {err[:180]}"
 
-    return _groq_chat(message, history)
+    if GROQ_API_KEY:
+        try:
+            return _groq_chat(message, history)
+        except Exception as groq_err:
+            return f"SENTINEL response channel degraded. Fallback model error: {str(groq_err)[:180]}"
+
+    return "⚠️ SENTINEL offline — no API keys configured."
 
 
 def _gemini_chat(message: str, history: list = None) -> str:

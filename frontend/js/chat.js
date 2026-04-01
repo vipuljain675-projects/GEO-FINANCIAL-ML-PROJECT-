@@ -41,11 +41,22 @@ async function sendMessage() {
         history: chatHistory
       })
     });
-
-    const data = await res.json();
+    const raw = await res.text();
+    let data = {};
+    if (raw) {
+      try {
+        data = JSON.parse(raw);
+      } catch (_err) {
+        throw new Error(raw.slice(0, 300));
+      }
+    }
     
     // Remove thinking
     document.getElementById(thinkingId).remove();
+
+    if (!res.ok) {
+      throw new Error(data.detail || data.error || raw || `Request failed with status ${res.status}`);
+    }
 
     if (data.response) {
       appendMessage('sentinel', data.response);

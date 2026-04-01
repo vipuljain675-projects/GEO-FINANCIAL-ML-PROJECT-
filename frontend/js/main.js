@@ -264,6 +264,29 @@ function appendPortfolioChatMessage(role, text) {
   container.scrollTop = container.scrollHeight;
 }
 
+async function parseApiResponse(res) {
+  const raw = await res.text();
+  let data = {};
+
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch (_err) {
+      if (res.ok) {
+        throw new Error('Server returned an unreadable response.');
+      }
+      throw new Error(raw.slice(0, 300));
+    }
+  }
+
+  if (!res.ok) {
+    const detail = data.detail || data.error || raw || `Request failed with status ${res.status}`;
+    throw new Error(detail);
+  }
+
+  return data;
+}
+
 async function sendPortfolioChatMessage(prefillText) {
   const input = document.getElementById('portfolio-chat-input');
   const sendBtn = document.getElementById('portfolio-chat-send');
@@ -280,7 +303,7 @@ async function sendPortfolioChatMessage(prefillText) {
       headers: getAuthHeaders(),
       body: JSON.stringify({ message: text, history: portfolioChatHistory })
     });
-    const data = await res.json();
+    const data = await parseApiResponse(res);
     const reply = data.response || 'No response from portfolio advisor.';
     appendPortfolioChatMessage('assistant', reply);
     portfolioChatHistory.push({ role: 'user', content: text });
@@ -344,7 +367,7 @@ document.getElementById('btn-run-advisor')?.addEventListener('click', async () =
 
   try {
     const res = await fetch('/api/personal/analyze', { method: 'POST', headers: getAuthHeaders() });
-    const data = await res.json();
+    const data = await parseApiResponse(res);
     document.querySelector('.advisor-loading').style.display = 'none';
     renderPortfolioSummary(data.summary || {});
     renderDecisionCards(data.holdings || []);
@@ -364,7 +387,9 @@ document.getElementById('btn-run-advisor')?.addEventListener('click', async () =
     tick();
 
   } catch (e) {
-    alert(e);
+    document.querySelector('.advisor-loading').style.display = 'none';
+    text.textContent = `Scan failed: ${e.message}`;
+    btn.disabled = false;
     btn.disabled = false;
   }
 });

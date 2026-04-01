@@ -86,6 +86,8 @@ def _get_cached_payload(db, kind: str, query: str, max_age_minutes: int = 20):
     if not doc:
         return None
     fetched_at = doc.get("fetched_at")
+    if fetched_at and fetched_at.tzinfo is None:
+        fetched_at = fetched_at.replace(tzinfo=timezone.utc)
     if not fetched_at or (_now_utc() - fetched_at) > timedelta(minutes=max_age_minutes):
         return None
     return doc.get("payload")

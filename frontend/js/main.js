@@ -372,6 +372,9 @@ async function parseApiResponse(res) {
   }
 
   if (!res.ok) {
+    if (res.status === 401 && typeof window.handleSessionExpiry === 'function') {
+      setTimeout(() => window.handleSessionExpiry(), 0);
+    }
     const detail = data.detail || data.error || raw || `Request failed with status ${res.status}`;
     throw new Error(detail);
   }

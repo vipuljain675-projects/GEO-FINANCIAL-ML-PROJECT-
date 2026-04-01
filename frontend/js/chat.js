@@ -64,6 +64,9 @@ async function sendMessage() {
     removeThinking(thinkingId);
 
     if (!res.ok) {
+      if (res.status === 401 && typeof window.handleSessionExpiry === 'function') {
+        setTimeout(() => window.handleSessionExpiry(), 0);
+      }
       throw new Error(data.detail || data.error || raw || `Request failed with status ${res.status}`);
     }
 

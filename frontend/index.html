@@ -1222,6 +1222,19 @@
         if (window.loadPortfolioHistory) window.loadPortfolioHistory();
       }
 
+      function handleSessionExpiry() {
+        resetAiMemoryState();
+        localStorage.removeItem('sentinel_token');
+        localStorage.removeItem('sentinel_user_name');
+        localStorage.removeItem('sentinel_guest');
+        localStorage.removeItem('sentinel_onboarding_complete');
+        updateSessionUI();
+        setAuthStatus('Session expired. Log in again to continue.', 'error');
+        window.location.href = '/';
+      }
+
+      window.handleSessionExpiry = handleSessionExpiry;
+
       var logoutBtn = document.getElementById('btn-logout');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {

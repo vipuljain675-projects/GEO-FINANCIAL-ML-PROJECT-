@@ -174,7 +174,10 @@ def signup(user: UserCreate, db=Depends(database.get_db)):
         }
     )
 
-    access_token = auth.create_access_token(data={"sub": user.email})
+    access_token = auth.create_access_token(
+        data={"sub": user.email},
+        expires_delta=timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.post("/api/auth/login", response_model=Token)
@@ -183,7 +186,10 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db=Depends(database.
     if not user or not auth.verify_password(form_data.password, user["hashed_password"]):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
 
-    access_token = auth.create_access_token(data={"sub": user["email"]})
+    access_token = auth.create_access_token(
+        data={"sub": user["email"]},
+        expires_delta=timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/api/auth/me", response_model=UserProfile)

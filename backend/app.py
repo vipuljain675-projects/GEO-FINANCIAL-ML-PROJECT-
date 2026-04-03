@@ -14,6 +14,7 @@ from urllib.parse import quote
 from dotenv import load_dotenv
 import threading
 import time
+from datetime import timedelta
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"), override=True)
 
@@ -159,6 +160,13 @@ class UserProfile(BaseModel):
     email: EmailStr
     full_name: str
 
+
+class InvestorPreferences(BaseModel):
+    risk_mode: str = "balanced"
+    conviction_style: str = "medium"
+    time_horizon: str = "medium_term"
+    reply_style: str = "full_context"
+
 @app.post("/api/auth/signup", response_model=Token)
 def signup(user: UserCreate, db=Depends(database.get_db)):
     db_user = db["users"].find_one({"email": user.email})
@@ -278,6 +286,24 @@ class PortfolioChatRequest(BaseModel):
     message: str
     history: Optional[List[dict]] = []
 
+
+def _default_investor_preferences() -> dict:
+    return {
+        "risk_mode": "balanced",
+        "conviction_style": "medium",
+        "time_horizon": "medium_term",
+        "reply_style": "full_context",
+    }
+
+
+def _get_user_preferences(db, user_id: str) -> dict:
+    prefs = _default_investor_preferences()
+    stored = db["user_preferences"].find_one({"user_id": user_id}) or {}
+    for key in prefs:
+        if stored.get(key):
+            prefs[key] = stored[key]
+    return prefs
+
 def _format_currency(value: Optional[float]) -> str:
     if value is None:
         return "Unknown"
@@ -302,7 +328,73 @@ def _portfolio_action_label(pnl_pct: Optional[float], sector: str, concentration
         return "BUY MORE", "Position is near cost basis, so disciplined accumulation can improve the average if conviction is intact."
     return "HOLD", "Current move still looks tactical rather than thesis-breaking."
 
+
+def _entry_quality(pnl_pct: Optional[float]) -> str:
+    if pnl_pct is None:
+        return "unknown"
+    if pnl_pct >= 35:
+        return "excellent_entry"
+    if pnl_pct >= 12:
+        return "good_entry"
+    if pnl_pct >= -8:
+        return "fair_entry"
+    if pnl_pct >= -18:
+        return "weak_entry"
+    return "stressed_entry"
+
+
+def _position_state(pnl_pct: Optional[float]) -> str:
+    if pnl_pct is None:
+        return "unclear"
+    if pnl_pct >= 40:
+        return "big_winner"
+    if pnl_pct >= 12:
+        return "winner"
+    if pnl_pct >= -8:
+        return "flat_zone"
+    if pnl_pct >= -20:
+        return "in_loss"
+    return "deep_in_loss"
+
+
+def _thesis_status(sector: str, pnl_pct: Optional[float], criticality: float) -> str:
+    sector = (sector or "").lower()
+    if pnl_pct is None:
+        return "intact"
+    if pnl_pct <= -22 and criticality < 7 and sector not in {"defense", "energy", "logistics"}:
+        return "broken"
+    if pnl_pct <= -10 or sector in {"logistics", "energy"}:
+        return "pressured"
+    return "intact"
+
+
+def _position_advice_context(
+    pnl_pct: Optional[float],
+    concentration_pct: float,
+    thesis_status: str,
+    preferences: dict,
+) -> tuple[str, str]:
+    risk_mode = preferences.get("risk_mode", "balanced")
+    conviction_style = preferences.get("conviction_style", "medium")
+
+    if pnl_pct is None:
+        return "hold_pending_data", "Live context is incomplete, so the safest move is to hold until better confirmation arrives."
+    if thesis_status == "broken":
+        return "exit_if_thesis_broken", "The thesis looks broken, so protecting capital matters more than patience."
+    if concentration_pct >= 35 and pnl_pct >= 15:
+        return "trim_on_strength", "This is already a large profitable position, so trimming on strength lowers future drawdown risk."
+    if pnl_pct <= -8 and thesis_status == "pressured":
+        if risk_mode == "aggressive" and conviction_style == "high":
+            return "hold_not_add", "Conviction can justify holding, but the entry is weak enough that averaging blindly would be reckless."
+        return "hold_not_add", "The thesis may still be alive, but the entry is weak enough that holding is safer than adding fresh money."
+    if -6 <= pnl_pct <= 8 and thesis_status == "intact" and risk_mode == "aggressive" and conviction_style == "high":
+        return "can_add_on_dip", "The position is near cost basis and conviction is high, so staggered buying on dips can be justified."
+    if pnl_pct >= 25:
+        return "hold_or_trim", "You already have a strong profit cushion, so the question is profit management, not panic."
+    return "hold", "This setup still looks like a hold while the thesis and macro picture evolve."
+
 def build_portfolio_intelligence(current_user: dict, db):
+    preferences = _get_user_preferences(db, current_user["id"])
     items = list(db["portfolios"].find({"user_id": current_user["id"]}))
     if not items:
         return {
@@ -316,7 +408,8 @@ def build_portfolio_intelligence(current_user: dict, db):
                 "concentration_warning": "No holdings uploaded yet."
             },
             "holdings": [],
-            "narrative_prompt": "The portfolio is empty."
+            "narrative_prompt": "The portfolio is empty.",
+            "preferences": preferences,
         }
 
     company_index = {c["ticker"]: c for c in load_data().get("companies", [])}
@@ -375,9 +468,56 @@ def build_portfolio_intelligence(current_user: dict, db):
         current_value = holding["current_value"] or 0
         concentration_pct = (current_value / total_current_value * 100) if total_current_value > 0 else 0
         action, rationale = _portfolio_action_label(holding["pnl_pct"], holding["sector"], concentration_pct)
+        entry_quality = _entry_quality(holding["pnl_pct"])
+        position_state = _position_state(holding["pnl_pct"])
+        thesis_status = _thesis_status(holding["sector"], holding["pnl_pct"], holding["criticality"])
+        action_context, action_context_reason = _position_advice_context(
+            holding["pnl_pct"],
+            concentration_pct,
+            thesis_status,
+            preferences,
+        )
+        if holding["sector"] == "logistics":
+            positive_case = [
+                "India's trade and export flows structurally support major logistics gateways over time.",
+                "Trade deals and cargo expansion can help once shipping routes normalize."
+            ]
+            negative_case = [
+                "West Asia, Red Sea, and Hormuz disruptions still pressure near-term margins and sentiment.",
+                "Fresh buying at a weak entry can trap more capital while routes remain stressed."
+            ]
+        elif holding["sector"] == "defense":
+            positive_case = [
+                "Defense procurement and strategic autonomy still support the long-term thesis.",
+                "Government alignment is stronger for mission-critical defense names."
+            ]
+            negative_case = [
+                "Supply-chain or import dependencies can still delay execution and near-term upside."
+            ]
+        elif holding["sector"] == "energy":
+            positive_case = [
+                "Energy security keeps strategic support high for critical producers and utilities."
+            ]
+            negative_case = [
+                "Oil and commodity volatility can sharply change margins and headline risk."
+            ]
+        else:
+            positive_case = [
+                "The company still sits in India's strategic backbone, which supports the long-duration thesis."
+            ]
+            negative_case = [
+                "Macro pressure and valuation risk can still dominate the near term."
+            ]
         holding["concentration_pct"] = concentration_pct
         holding["action"] = action
         holding["rationale"] = rationale
+        holding["entry_quality"] = entry_quality
+        holding["position_state"] = position_state
+        holding["thesis_status"] = thesis_status
+        holding["action_context"] = action_context
+        holding["action_context_reason"] = action_context_reason
+        holding["positive_case"] = positive_case
+        holding["negative_case"] = negative_case
         holding["thesis"] = (
             f"{holding['company_name']} sits in the {holding['sector']} bucket with role '{holding['role']}'. "
             f"Entered on {holding['purchase_date'] or 'an unknown date'} at {_format_currency(holding['purchase_price'])}, "
@@ -397,7 +537,9 @@ def build_portfolio_intelligence(current_user: dict, db):
             f"buy_date={holding['purchase_date'] or 'unknown'}, buy_price={_format_currency(holding['purchase_price'])}, "
             f"current_price={_format_currency(holding['live_price'])}, quantity={holding['quantity']}, "
             f"pnl={_format_currency(holding['pnl_value'])}, pnl_pct={pnl_pct_text}, "
-            f"action={holding['action']}"
+            f"action={holding['action']}, entry_quality={holding['entry_quality']}, position_state={holding['position_state']}, "
+            f"thesis_status={holding['thesis_status']}, action_context={holding['action_context']}, "
+            f"positive_case={' | '.join(holding['positive_case'])}, negative_case={' | '.join(holding['negative_case'])}"
         )
 
     concentration_warning = (
@@ -415,9 +557,11 @@ def build_portfolio_intelligence(current_user: dict, db):
             "biggest_position": biggest_position["company_name"],
             "highest_risk": highest_risk["company_name"],
             "concentration_warning": concentration_warning,
+            "preferences": preferences,
         },
         "holdings": enriched,
-        "narrative_prompt": "\n".join(narrative_lines)
+        "narrative_prompt": "\n".join(narrative_lines),
+        "preferences": preferences,
     }
 
 @app.get("/api/portfolio")
@@ -475,6 +619,26 @@ def remove_from_portfolio(ticker: str, current_user=Depends(get_current_user), d
     db["portfolios"].delete_one({"user_id": current_user["id"], "ticker": ticker.upper()})
     return {"status": "deleted"}
 
+
+@app.get("/api/personal/preferences")
+def get_personal_preferences(current_user=Depends(get_current_user), db=Depends(database.get_db)):
+    return _get_user_preferences(db, current_user["id"])
+
+
+@app.put("/api/personal/preferences")
+def update_personal_preferences(
+    prefs: InvestorPreferences,
+    current_user=Depends(get_current_user),
+    db=Depends(database.get_db),
+):
+    payload = prefs.model_dump()
+    db["user_preferences"].update_one(
+        {"user_id": current_user["id"]},
+        {"$set": {"user_id": current_user["id"], **payload}},
+        upsert=True,
+    )
+    return payload
+
 # --- AI PERSONAL ADVISOR ---
 @app.post("/api/personal/analyze")
 def analyze_personal(current_user=Depends(get_current_user), db=Depends(database.get_db)):
@@ -494,11 +658,13 @@ def analyze_personal(current_user=Depends(get_current_user), db=Depends(database
     prompt = (
         f"You are the Strategic Shield personal portfolio advisor. Analyze {current_user['full_name']}'s holdings.\n\n"
         f"{live_context}\n\n"
+        f"Investor preferences: {json.dumps(intelligence['preferences'])}\n\n"
         f"Portfolio Snapshot:\n{intelligence['narrative_prompt']}\n\n"
         "Write a concise portfolio verdict with exactly these sections:\n"
         "1. PORTFOLIO VERDICT\n"
         "2. TOP RISKS\n"
         "3. NEXT 3 MOVES\n"
+        "Use the investor preferences and do not treat HOLD, BUY MORE, and HOLD, DO NOT ADD as the same thing.\n"
         "Make it crisp, readable, and practical. No markdown tables. No fluff."
     )
 
@@ -526,6 +692,7 @@ def chat_personal(body: PortfolioChatRequest, current_user=Depends(get_current_u
     prompt = (
         f"You are the personal portfolio copilot for {current_user['full_name']}.\n"
         f"{live_context}\n\n"
+        f"Investor preferences: {json.dumps(intelligence['preferences'])}\n\n"
         f"Use this live portfolio context:\n{intelligence['narrative_prompt']}\n\n"
         f"Current holdings tickers: {held_tickers}\n\n"
         f"Tracked universe available for recommendations:\n{tracked_universe}\n\n"
@@ -533,12 +700,16 @@ def chat_personal(body: PortfolioChatRequest, current_user=Depends(get_current_u
         "Rules:\n"
         "1. Answer the user's exact question in the first line.\n"
         "2. If the user asks what to buy/add now, give a ranked shortlist from the tracked universe, not a lecture.\n"
-        "3. Use sections exactly as needed: BUY NOW, WATCHLIST, AVOID / NO BUY, PORTFOLIO FIT.\n"
-        "4. Be blunt and decisive. Do not refuse. Do not say you cannot give buy/sell recommendations.\n"
-        "5. Avoid over-concentrating into the user's existing largest position or sector unless conviction is very strong.\n"
-        "6. Prefer ideas that diversify the user's current holdings and are strategically strong in the present environment.\n"
-        "7. If live price is missing, say 'Price check: use Market Intelligence tab for live NSE data.'\n"
-        "8. Keep the answer crisp, specific, and data-oriented."
+        "3. If the question is about an existing holding, explicitly separate: POSITION STATUS, BULL CASE, BEAR CASE, ACTION NOW.\n"
+        "4. If entry quality is weak or the user is already in loss, distinguish HOLD from BUY MORE. Use HOLD, DO NOT ADD when the thesis is alive but fresh buying is unattractive.\n"
+        "5. Use sections exactly as needed: BUY NOW, WATCHLIST, AVOID / NO BUY, PORTFOLIO FIT.\n"
+        "6. Adjust the final action to the investor preferences, but never let 'aggressive' mean blindly averaging into a bad entry.\n"
+        "7. If a company has strategic significance or supportive trade/government developments, mention them before the final action.\n"
+        "8. If live price is missing, say 'Price check: use Market Intelligence tab for live NSE data.'\n"
+        "9. Keep the answer crisp, specific, and data-oriented.\n"
+        "10. Avoid over-concentrating into the user's existing largest position or sector unless conviction is very strong.\n"
+        "11. Prefer ideas that diversify the user's current holdings and are strategically strong in the present environment.\n"
+        "12. Be blunt and decisive. Do not refuse. Do not say you cannot give buy/sell recommendations."
     )
     effective_history = body.history or get_persistent_history(db, current_user["id"], "portfolio")
     response = llm.chat(prompt, effective_history)

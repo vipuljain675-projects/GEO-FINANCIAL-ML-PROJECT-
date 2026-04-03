@@ -14,8 +14,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link rel="stylesheet" href="/static/css/style.css?v=2.3" />
-  <link rel="stylesheet" href="/static/css/market.css?v=2.1" />
+  <link rel="stylesheet" href="/static/css/style.css?v=2.4" />
+  <link rel="stylesheet" href="/static/css/market.css?v=2.2" />
   <style>
     .event-pills { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px 0; }
     .event-pill { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; border: 1px solid; letter-spacing: 0.3px; cursor: default; }
@@ -631,6 +631,10 @@
                   <span class="identity-value">Strategic Personal Advisor</span>
                 </div>
                 <div class="identity-stat">
+                  <span class="identity-label">Investor Mode</span>
+                  <span class="identity-value" id="portfolio-investor-mode">Balanced / Medium</span>
+                </div>
+                <div class="identity-stat">
                   <span class="identity-label">Flow</span>
                   <span class="identity-value">Portfolio -> Scanner -> AI Bot</span>
                 </div>
@@ -655,6 +659,51 @@
               <div class="summary-tile">
                 <span class="summary-label">Highest Risk</span>
                 <span class="summary-value" id="summary-risk">—</span>
+              </div>
+            </div>
+
+            <div class="portfolio-card add-asset-card">
+              <div class="card-header">
+                <h3>INVESTOR MODE</h3>
+                <button id="btn-save-prefs" class="refresh-link">SAVE STYLE</button>
+              </div>
+              <div class="add-asset-form">
+                <div class="input-row">
+                  <div class="input-group">
+                    <label>RISK MODE</label>
+                    <select id="pref-risk-mode">
+                      <option value="conservative">Conservative</option>
+                      <option value="balanced">Balanced</option>
+                      <option value="aggressive">Aggressive</option>
+                    </select>
+                  </div>
+                  <div class="input-group">
+                    <label>CONVICTION</label>
+                    <select id="pref-conviction-style">
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="input-row">
+                  <div class="input-group">
+                    <label>TIME HORIZON</label>
+                    <select id="pref-time-horizon">
+                      <option value="short_term">Short Term</option>
+                      <option value="medium_term">Medium Term</option>
+                      <option value="long_term">Long Term</option>
+                    </select>
+                  </div>
+                  <div class="input-group">
+                    <label>REPLY STYLE</label>
+                    <select id="pref-reply-style">
+                      <option value="full_context">Full Context</option>
+                      <option value="direct">Direct</option>
+                    </select>
+                  </div>
+                </div>
+                <p class="advisor-side-copy">This tells SENTINEL whether to protect gains, stay balanced, or allow higher-conviction patience. Aggressive mode still avoids blindly averaging into a weak entry.</p>
               </div>
             </div>
 
@@ -1365,10 +1414,10 @@
   })();
   </script>
 
-  <script src="/static/js/audio.js?v=2.1"></script>
-  <script src="/static/js/main.js?v=2.1"></script>
-  <script src="/static/js/graph.js?v=2.1"></script>
-  <script src="/static/js/chat.js?v=2.1"></script>
-  <script src="/static/js/market.js?v=2.1"></script>
+  <script src="/static/js/audio.js?v=2.2"></script>
+  <script src="/static/js/main.js?v=2.2"></script>
+  <script src="/static/js/graph.js?v=2.2"></script>
+  <script src="/static/js/chat.js?v=2.2"></script>
+  <script src="/static/js/market.js?v=2.2"></script>
 </body>
 </html>

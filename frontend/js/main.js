@@ -4,6 +4,7 @@ let riskData = [];
 let portfolioChatHistory = [];
 let portfolioHistoryLoaded = false;
 let portfolioHistoryKey = null;
+let portfolioPreferencesLoaded = false;
 const PORTFOLIO_THINKING_STAGES = [
   'Reading your holdings...',
   'Scanning live event memory...',
@@ -143,8 +144,68 @@ async function initPortfolio() {
   authStatus.style.color = '#10b981';
   document.getElementById('btn-add-to-port').disabled = false;
   document.getElementById('btn-run-advisor').disabled = false;
+  loadPortfolioPreferences();
   loadPortfolioHistory();
   fetchHoldings();
+}
+
+async function loadPortfolioPreferences() {
+  const token = localStorage.getItem('sentinel_token');
+  if (!token || isGuest() || portfolioPreferencesLoaded) return;
+  try {
+    const res = await fetch('/api/personal/preferences', { headers: getAuthHeaders() });
+    const prefs = await parseApiResponse(res);
+    document.getElementById('pref-risk-mode').value = prefs.risk_mode || 'balanced';
+    document.getElementById('pref-conviction-style').value = prefs.conviction_style || 'medium';
+    document.getElementById('pref-time-horizon').value = prefs.time_horizon || 'medium_term';
+    document.getElementById('pref-reply-style').value = prefs.reply_style || 'full_context';
+    const investorMode = document.getElementById('portfolio-investor-mode');
+    if (investorMode) {
+      investorMode.textContent = `${(prefs.risk_mode || 'balanced').replace('_', ' ')} / ${(prefs.conviction_style || 'medium').replace('_', ' ')}`;
+    }
+    portfolioPreferencesLoaded = true;
+  } catch (_e) {}
+}
+
+async function savePortfolioPreferences() {
+  const payload = {
+    risk_mode: document.getElementById('pref-risk-mode')?.value || 'balanced',
+    conviction_style: document.getElementById('pref-conviction-style')?.value || 'medium',
+    time_horizon: document.getElementById('pref-time-horizon')?.value || 'medium_term',
+    reply_style: document.getElementById('pref-reply-style')?.value || 'full_context'
+  };
+  const btn = document.getElementById('btn-save-prefs');
+  const original = btn ? btn.textContent : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'SAVING...';
+  }
+  try {
+    const res = await fetch('/api/personal/preferences', {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+    await parseApiResponse(res);
+    portfolioPreferencesLoaded = true;
+    const investorMode = document.getElementById('portfolio-investor-mode');
+    if (investorMode) {
+      investorMode.textContent = `${payload.risk_mode.replace('_', ' ')} / ${payload.conviction_style.replace('_', ' ')}`;
+    }
+    if (btn) btn.textContent = 'SAVED';
+    setTimeout(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = original || 'SAVE STYLE';
+      }
+    }, 900);
+  } catch (e) {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = original || 'SAVE STYLE';
+    }
+    alert(`Failed to save investor mode: ${e.message}`);
+  }
 }
 
 async function fetchHoldings() {
@@ -346,6 +407,7 @@ function resetPortfolioHistoryState() {
   portfolioChatHistory = [];
   portfolioHistoryLoaded = false;
   portfolioHistoryKey = null;
+  portfolioPreferencesLoaded = false;
   const container = document.getElementById('portfolio-chat-messages');
   if (container) {
     container.innerHTML = `
@@ -456,6 +518,7 @@ document.getElementById('btn-add-to-port')?.addEventListener('click', async () =
 });
 
 document.getElementById('btn-refresh-port')?.addEventListener('click', fetchHoldings);
+document.getElementById('btn-save-prefs')?.addEventListener('click', savePortfolioPreferences);
 
 document.getElementById('btn-run-advisor')?.addEventListener('click', async () => {
   const container = document.getElementById('advisor-result-container');

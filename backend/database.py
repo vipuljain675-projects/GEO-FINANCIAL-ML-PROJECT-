@@ -52,6 +52,7 @@ def ensure_indexes(db=None) -> None:
         db = get_database()
     db["users"].create_index("email", unique=True)
     db["portfolios"].create_index([("user_id", ASCENDING), ("ticker", ASCENDING)], unique=True)
+    db["user_preferences"].create_index("user_id", unique=True)
     db["live_event_cache"].create_index("cache_key", unique=True)
     db["live_event_cache"].create_index("fetched_at")
     db["live_events"].create_index("fingerprint", unique=True)

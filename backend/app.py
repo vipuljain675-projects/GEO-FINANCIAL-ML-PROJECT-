@@ -357,25 +357,125 @@ def _position_state(pnl_pct: Optional[float]) -> str:
     return "deep_in_loss"
 
 
-def _thesis_status(sector: str, pnl_pct: Optional[float], criticality: float) -> str:
+def _thesis_status(sector: str, pnl_pct: Optional[float], criticality: float, ticker: str = "", role: str = "") -> str:
     sector = (sector or "").lower()
+    ticker = (ticker or "").upper()
+    role_text = (role or "").lower()
     if pnl_pct is None:
         return "intact"
     if pnl_pct <= -22 and criticality < 7 and sector not in {"defense", "energy", "logistics"}:
         return "broken"
-    if pnl_pct <= -10 or sector in {"logistics", "energy"}:
+    if sector == "logistics":
+        return "pressured"
+    if sector == "energy":
+        if ticker == "ONGC.NS" or "crude oil production" in role_text:
+            return "pressured" if pnl_pct <= -12 else "intact"
+        return "pressured"
+    if pnl_pct <= -10:
         return "pressured"
     return "intact"
+
+
+def _holding_cases(holding: dict) -> tuple[list[str], list[str]]:
+    sector = (holding.get("sector") or "").lower()
+    ticker = (holding.get("ticker") or "").upper()
+    role = holding.get("role") or ""
+
+    if ticker == "ADANIPORTS.NS":
+        return (
+            [
+                "India's trade and export flows structurally support major logistics gateways over time.",
+                "Trade deals and cargo expansion can help once shipping routes normalize.",
+                "The company remains strategically important to India's cargo network."
+            ],
+            [
+                "West Asia, Red Sea, and Hormuz disruptions still pressure near-term margins and sentiment.",
+                "Fresh buying at a weak entry can trap more capital while routes remain stressed."
+            ],
+        )
+
+    if ticker == "ONGC.NS" or "crude oil production" in role.lower():
+        return (
+            [
+                "ONGC is an upstream producer, so firmer crude prices can directly support realizations and earnings.",
+                "Energy security keeps strategic support high for India's main domestic producer.",
+                "Supply shocks can strengthen ONGC faster than they help downstream fuel distributors."
+            ],
+            [
+                "Crude volatility can reverse quickly, so chasing short-term spikes can still create bad entries.",
+                "Government intervention or windfall-style pressure can cap how much upside reaches shareholders."
+            ],
+        )
+
+    if ticker in {"IOC.NS", "BPCL.NS"} or "fuel distribution" in role.lower() or "strategic petroleum reserves" in role.lower():
+        return (
+            [
+                "Energy security keeps these names strategically relevant in India's fuel system."
+            ],
+            [
+                "Refiners and distributors can be squeezed when crude spikes faster than retail price pass-through.",
+                "Geopolitical oil shocks raise working-capital and margin risk for downstream energy names."
+            ],
+        )
+
+    if sector == "logistics":
+        return (
+            [
+                "India's trade and export flows structurally support major logistics gateways over time.",
+                "Trade deals and cargo expansion can help once shipping routes normalize."
+            ],
+            [
+                "West Asia, Red Sea, and Hormuz disruptions still pressure near-term margins and sentiment.",
+                "Fresh buying at a weak entry can trap more capital while routes remain stressed."
+            ],
+        )
+
+    if sector == "defense":
+        return (
+            [
+                "Defense procurement and strategic autonomy still support the long-term thesis.",
+                "Government alignment is stronger for mission-critical defense names."
+            ],
+            [
+                "Supply-chain or import dependencies can still delay execution and near-term upside."
+            ],
+        )
+
+    if sector == "energy":
+        return (
+            [
+                "Energy security keeps strategic support high for critical producers and utilities."
+            ],
+            [
+                "Oil and commodity volatility can sharply change margins and headline risk."
+            ],
+        )
+
+    return (
+        [
+            "The company still sits in India's strategic backbone, which supports the long-duration thesis."
+        ],
+        [
+            "Macro pressure and valuation risk can still dominate the near term."
+        ],
+    )
 
 
 def _position_advice_context(
     pnl_pct: Optional[float],
     concentration_pct: float,
     thesis_status: str,
+    sector: str,
+    ticker: str,
+    role: str,
+    criticality: float,
     preferences: dict,
 ) -> tuple[str, str]:
     risk_mode = preferences.get("risk_mode", "balanced")
     conviction_style = preferences.get("conviction_style", "medium")
+    sector = (sector or "").lower()
+    ticker = (ticker or "").upper()
+    role_text = (role or "").lower()
 
     if pnl_pct is None:
         return "hold_pending_data", "Live context is incomplete, so the safest move is to hold until better confirmation arrives."
@@ -383,6 +483,17 @@ def _position_advice_context(
         return "exit_if_thesis_broken", "The thesis looks broken, so protecting capital matters more than patience."
     if concentration_pct >= 35 and pnl_pct >= 15:
         return "trim_on_strength", "This is already a large profitable position, so trimming on strength lowers future drawdown risk."
+    if (
+        thesis_status == "intact"
+        and concentration_pct < 25
+        and pnl_pct is not None
+        and -15 <= pnl_pct <= 3
+        and criticality >= 8
+    ):
+        if ticker == "ONGC.NS" or "crude oil production" in role_text:
+            if risk_mode == "aggressive" or conviction_style == "high":
+                return "buy_on_weakness", "Current weakness looks more event-driven than thesis-breaking, so staggered buying into a strategic upstream producer can be justified."
+            return "hold_or_small_add", "The thesis is intact and the weakness looks temporary, so holding is fine and small staggered additions can be considered."
     if pnl_pct <= -8 and thesis_status == "pressured":
         if risk_mode == "aggressive" and conviction_style == "high":
             return "hold_not_add", "Conviction can justify holding, but the entry is weak enough that averaging blindly would be reckless."
@@ -470,44 +581,24 @@ def build_portfolio_intelligence(current_user: dict, db):
         action, rationale = _portfolio_action_label(holding["pnl_pct"], holding["sector"], concentration_pct)
         entry_quality = _entry_quality(holding["pnl_pct"])
         position_state = _position_state(holding["pnl_pct"])
-        thesis_status = _thesis_status(holding["sector"], holding["pnl_pct"], holding["criticality"])
+        thesis_status = _thesis_status(
+            holding["sector"],
+            holding["pnl_pct"],
+            holding["criticality"],
+            holding["ticker"],
+            holding["role"],
+        )
         action_context, action_context_reason = _position_advice_context(
             holding["pnl_pct"],
             concentration_pct,
             thesis_status,
+            holding["sector"],
+            holding["ticker"],
+            holding["role"],
+            holding["criticality"],
             preferences,
         )
-        if holding["sector"] == "logistics":
-            positive_case = [
-                "India's trade and export flows structurally support major logistics gateways over time.",
-                "Trade deals and cargo expansion can help once shipping routes normalize."
-            ]
-            negative_case = [
-                "West Asia, Red Sea, and Hormuz disruptions still pressure near-term margins and sentiment.",
-                "Fresh buying at a weak entry can trap more capital while routes remain stressed."
-            ]
-        elif holding["sector"] == "defense":
-            positive_case = [
-                "Defense procurement and strategic autonomy still support the long-term thesis.",
-                "Government alignment is stronger for mission-critical defense names."
-            ]
-            negative_case = [
-                "Supply-chain or import dependencies can still delay execution and near-term upside."
-            ]
-        elif holding["sector"] == "energy":
-            positive_case = [
-                "Energy security keeps strategic support high for critical producers and utilities."
-            ]
-            negative_case = [
-                "Oil and commodity volatility can sharply change margins and headline risk."
-            ]
-        else:
-            positive_case = [
-                "The company still sits in India's strategic backbone, which supports the long-duration thesis."
-            ]
-            negative_case = [
-                "Macro pressure and valuation risk can still dominate the near term."
-            ]
+        positive_case, negative_case = _holding_cases(holding)
         holding["concentration_pct"] = concentration_pct
         holding["action"] = action
         holding["rationale"] = rationale
@@ -709,7 +800,10 @@ def chat_personal(body: PortfolioChatRequest, current_user=Depends(get_current_u
         "9. Keep the answer crisp, specific, and data-oriented.\n"
         "10. Avoid over-concentrating into the user's existing largest position or sector unless conviction is very strong.\n"
         "11. Prefer ideas that diversify the user's current holdings and are strategically strong in the present environment.\n"
-        "12. Be blunt and decisive. Do not refuse. Do not say you cannot give buy/sell recommendations."
+        "12. Be blunt and decisive. Do not refuse. Do not say you cannot give buy/sell recommendations.\n"
+        "13. Distinguish upstream producers from downstream refiners/distributors. Higher crude can support ONGC-style upstream names, while it can squeeze IOC/BPCL-style downstream names.\n"
+        "14. Do not give one-sided energy answers. Always show both the earnings upside from higher crude and the volatility/policy risk before the final action.\n"
+        "15. If the user argues that current weakness may be temporary and the thesis is still intact, evaluate a BUY ON WEAKNESS path explicitly instead of defaulting to avoid/add-no-fresh-capital."
     )
     effective_history = body.history or get_persistent_history(db, current_user["id"], "portfolio")
     response = llm.chat(prompt, effective_history, live_query=body.message)

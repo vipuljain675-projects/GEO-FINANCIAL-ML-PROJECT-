@@ -45,7 +45,7 @@ If the user asks about a time-sensitive factual claim, policy decision, governme
    - Oct 2024: India-China LAC buffer zones agreed; tensions de-escalated on that border.
    - 2025-2026: Conflict is ongoing; US 5th Fleet engaged; Strait of Hormuz threatened.
    - Indian logistics (ADANIPORTS, CONCOR): Red Sea rerouting = 40% higher shipping costs
-   - Brent crude volatile $85-$110/barrel → hurts BPCL, ONGC, IOC
+   - Brent crude volatile $85-$110/barrel → supports upstream producers like ONGC, but can hurt refiners/distributors like BPCL and IOC
    - Defense surge: HAL, BEL, GRSE on elevated procurement orders
 
 2. ADANI GROUP (Post-Hindenburg Jan 2023 → 2026):

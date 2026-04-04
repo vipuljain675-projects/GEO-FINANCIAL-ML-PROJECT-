@@ -3,6 +3,7 @@ SENTINEL LLM — powered by Gemini 2.5 Flash (google-genai SDK).
 Falls back to Groq/Llama-3.3-70b if Gemini is unavailable.
 """
 import os
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,6 +28,11 @@ If the chat includes a LIVE MARKET DATA block:
 If asked for a price and NO live data is present:
 → Use your search/knowledge. Clearly state date context.
 → NEVER guess a price — say "check Market Intelligence tab for live NSE data"
+
+If the user asks about a time-sensitive factual claim, policy decision, government approval, project award, contract loss, regulation, management change, or says "as of today/latest/current":
+→ Verify it with live web search before answering.
+→ If live verification is unavailable, say that clearly.
+→ NEVER deny or confirm a current claim from stale memory alone.
 
 ═══════════════════════════════════════════
 ⚡ 2026 GEOPOLITICAL GROUND TRUTH
@@ -102,17 +108,63 @@ CRITICAL: Answer the user's actual question first. No evasion.
 """
 
 
-def chat(message: str, history: list = None) -> str:
+_LIVE_CLAIM_PATTERNS = [
+    r"\bas of\b",
+    r"\btoday\b",
+    r"\blatest\b",
+    r"\bcurrent\b",
+    r"\brecent\b",
+    r"\bjust now\b",
+    r"\bconfirmed\b",
+    r"\bis it true\b",
+    r"\bhas\b",
+    r"\bhave\b",
+    r"\bwas\b",
+    r"\bwere\b",
+    r"\bdid\b",
+    r"\bkicked out\b",
+    r"\bremoved\b",
+    r"\bapproved\b",
+    r"\bawarded\b",
+    r"\bwon\b",
+    r"\blost\b",
+    r"\bcontract\b",
+    r"\bprogramme\b",
+    r"\bprogram\b",
+    r"\bdefence\b",
+    r"\bgovernment\b",
+    r"\bpolicy\b",
+    r"\bsebi\b",
+    r"\brbi\b",
+    r"\bamca\b",
+]
+
+
+def _should_use_google_search(query: str) -> bool:
+    if not query:
+        return False
+    lowered = query.lower()
+    return any(re.search(pattern, lowered) for pattern in _LIVE_CLAIM_PATTERNS)
+
+
+def chat(message: str, history: list = None, live_query: str = "", force_live_search: bool = False) -> str:
     """Primary: Gemini 2.5 Flash. Fallback: Groq Llama 3.3 70B.
 
     Never raise raw provider errors back into FastAPI routes. If both providers
     fail, return a readable degraded-mode message instead of a 500.
     """
+    use_google_search = force_live_search or _should_use_google_search(live_query or message)
+
     if GEMINI_API_KEY:
         try:
-            return _gemini_chat(message, history)
+            return _gemini_chat(message, history, use_google_search=use_google_search)
         except Exception as e:
             err = str(e)
+            if use_google_search:
+                return (
+                    "SENTINEL could not complete live verification for this current claim right now. "
+                    "Please retry in a few seconds."
+                )
             if GROQ_API_KEY:
                 try:
                     return _groq_chat(message, history)
@@ -134,7 +186,7 @@ def chat(message: str, history: list = None) -> str:
     return "⚠️ SENTINEL offline — no API keys configured."
 
 
-def _gemini_chat(message: str, history: list = None) -> str:
+def _gemini_chat(message: str, history: list = None, use_google_search: bool = False) -> str:
     from google import genai
     from google.genai import types
 
@@ -146,11 +198,14 @@ def _gemini_chat(message: str, history: list = None) -> str:
         contents.append(types.Content(role=role, parts=[types.Part(text=h["content"])]))
     contents.append(types.Content(role="user", parts=[types.Part(text=message)]))
 
-    config = types.GenerateContentConfig(
-        system_instruction=SYSTEM_PROMPT,
-        temperature=0.75,
-        max_output_tokens=8192,
-    )
+    config_kwargs = {
+        "system_instruction": SYSTEM_PROMPT,
+        "temperature": 0.75,
+        "max_output_tokens": 8192,
+    }
+    if use_google_search:
+        config_kwargs["tools"] = [types.Tool(google_search=types.GoogleSearch())]
+    config = types.GenerateContentConfig(**config_kwargs)
 
     print(f"--- CALLING GEMINI ---")
     response = client.models.generate_content(

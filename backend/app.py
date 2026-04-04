@@ -668,7 +668,7 @@ def analyze_personal(current_user=Depends(get_current_user), db=Depends(database
         "Make it crisp, readable, and practical. No markdown tables. No fluff."
     )
 
-    response = llm.chat(prompt, [])
+    response = llm.chat(prompt, [], live_query="latest developments affecting this portfolio", force_live_search=True)
     return {
         "summary": intelligence["summary"],
         "holdings": intelligence["holdings"],
@@ -712,7 +712,7 @@ def chat_personal(body: PortfolioChatRequest, current_user=Depends(get_current_u
         "12. Be blunt and decisive. Do not refuse. Do not say you cannot give buy/sell recommendations."
     )
     effective_history = body.history or get_persistent_history(db, current_user["id"], "portfolio")
-    response = llm.chat(prompt, effective_history)
+    response = llm.chat(prompt, effective_history, live_query=body.message)
     updated_history = (effective_history + [
         {"role": "user", "content": body.message},
         {"role": "assistant", "content": response},
@@ -860,7 +860,7 @@ def chat_endpoint(body: ChatMessage, request: Request, db=Depends(database.get_d
     context = rag_context.build_context(body.message, db=db)
     augmented_message = f"{context}\n\nUser question: {body.message}" if context else body.message
     effective_history = body.history or (get_persistent_history(db, user["id"], "analyst") if user else [])
-    response = llm.chat(augmented_message, effective_history)
+    response = llm.chat(augmented_message, effective_history, live_query=body.message)
     if user:
         updated_history = (effective_history + [
             {"role": "user", "content": body.message},
